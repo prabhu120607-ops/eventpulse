@@ -18,9 +18,8 @@
 
     <!-- Event Header Card -->
     <div class="ep-card text-center py-4 mb-4">
-      <div class="brand-logo justify-content-center mb-2" style="color: var(--primary-navy) !important; font-size: 1.25rem;">
-        <span class="pulse-dot"></span>
-        Event<span class="brand-accent">Pulse</span>
+      <div class="brand-logo justify-content-center mb-2">
+        <img src="{% static 'img/logo-primary.png' %}" alt="EventPulse Logo" style="height: 38px; object-fit: contain;">
       </div>
 
       <span class="badge bg-light text-dark border mb-2">{{ event.get_category_display }}</span>

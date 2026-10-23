@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <linearGradient id="navGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E2E65"/>
+      <stop offset="100%" stop-color="#121D44"/>
+    </linearGradient>
+  </defs>
+  <!-- Background Rounded Square (Matches Brand Icon Box 3) -->
+  <rect width="256" height="256" rx="56" fill="url(#navGrad)"/>
+  
+  <!-- Outer C Arc -->
+  <path d="M 170 78 A 66 66 0 1 0 170 178" fill="none" stroke="#C6A76B" stroke-width="22" stroke-linecap="round"/>
+  
+  <!-- Pulse Waveform & Middle Bar -->
+  <path d="M 52 128 L 96 128 L 108 100 L 122 162 L 138 78 L 152 148 L 162 128 L 180 128" 
+        fill="none" stroke="#C6A76B" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+        
+  <!-- Top Right Pulse Dot -->
+  <circle cx="188" cy="68" r="14" fill="#C6A76B"/>
+</svg>

@@ -129,6 +129,25 @@ a:hover {
   color: var(--gold-accent);
 }
 
+.brand-logo-img {
+  height: 38px;
+  width: auto;
+  max-width: 190px;
+  object-fit: contain;
+  display: inline-block;
+  vertical-align: middle;
+  transition: transform var(--transition-fast);
+}
+
+.brand-logo:hover .brand-logo-img {
+  transform: scale(1.02);
+}
+
+.sidebar-brand .brand-logo-img {
+  height: 34px;
+  max-width: 175px;
+}
+
 .public-nav-links {
   display: flex;
   align-items: center;
