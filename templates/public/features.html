@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Features — EventPulse Platform{% endblock %}
+
+{% block content %}
+<section class="py-5" style="background-color: var(--primary-navy); color: var(--white);">
+  <div class="container text-center py-4">
+    <span class="badge bg-warning text-dark px-3 py-1 mb-3 fw-bold">Platform Capabilities</span>
+    <h1 class="text-white fw-bold mb-3">Engineered for Academic Impact</h1>
+    <p class="text-white-50 mx-auto" style="max-width: 650px;">
+      Explore the comprehensive suite of tools built specifically for university organizers, faculty departments, and institutional administration.
+    </p>
+  </div>
+</section>
+
+<section class="section-pad">
+  <div class="section-container">
+    <div class="row g-4 align-items-center mb-5">
+      <div class="col-lg-6">
+        <span class="section-tag">Automation Engine</span>
+        <h2 class="section-title">Automated Dispatch &amp; Intelligent Reminders</h2>
+        <p class="text-secondary">
+          Eliminate manual post-event email blasts. When a workshop or seminar concludes, EventPulse automatically checks verified attendance records, generates single-use cryptographic tokens, and emails personalized feedback invitations to eligible students.
+        </p>
+        <ul class="list-unstyled text-secondary small d-flex flex-column gap-2 mb-4">
+          <li><i class="bi bi-check-circle-fill text-success me-2"></i> Configurable dispatch triggers (immediate, +1h, +6h, +24h, or manual)</li>
+          <li><i class="bi bi-check-circle-fill text-success me-2"></i> Automated reminder scheduler targets only non-respondents before deadline</li>
+          <li><i class="bi bi-check-circle-fill text-success me-2"></i> Real-time tracking of sent invitations, delivery failures, and completion rates</li>
+        </ul>
+      </div>
+      <div class="col-lg-6">
+        <div class="ep-card">
+          <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+            <span class="fw-bold text-navy">Trigger Schedule</span>
+            <span class="badge bg-success-subtle text-success">Automated Active</span>
+          </div>
+          <div class="p-3 bg-light rounded-3 mb-2 small">
+            <strong>Event:</strong> Cloud Computing Bootcamp<br>
+            <strong>Concluded:</strong> Today at 4:30 PM<br>
+            <strong>Status:</strong> Invitations dispatched to 142 eligible attendees
+          </div>
+          <div class="p-2 border rounded-3 small text-muted">
+            <i class="bi bi-clock-history me-1"></i> Reminder scheduled for pending attendees in 48 hours.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4 align-items-center flex-lg-row-reverse mb-5">
+      <div class="col-lg-6">
+        <span class="section-tag">Privacy Architecture</span>
+        <h2 class="section-title">Verified Anonymity Without Data Distortion</h2>
+        <p class="text-secondary">
+          Campus feedback requires honest critique. EventPulse offers two distinct feedback modes: Identified and Anonymous. In Anonymous mode, individual responses are decoupled at the database level from student IDs, while single-use tokens ensure each attendee can only submit once.
+        </p>
+        <ul class="list-unstyled text-secondary small d-flex flex-column gap-2 mb-4">
+          <li><i class="bi bi-shield-check text-success me-2"></i> Zero association between student profiles and anonymous feedback comments</li>
+          <li><i class="bi bi-shield-check text-success me-2"></i> Cryptographic token consumption prevents duplicate submissions without identity linkage</li>
+          <li><i class="bi bi-shield-check text-success me-2"></i> Student confidence leads to constructive, candid reviews</li>
+        </ul>
+      </div>
+      <div class="col-lg-6">
+        <div class="ep-card">
+          <div class="d-flex align-items-center gap-2 mb-3">
+            <i class="bi bi-lock-fill text-warning fs-4"></i>
+            <h5 class="mb-0 fw-bold">Privacy Architecture</h5>
+          </div>
+          <p class="small text-secondary mb-3">
+            Token verification validates attendance eligibility, sets the invitation to completed status, and stores the response record anonymously with no foreign keys to the student.
+          </p>
+          <div class="badge bg-light text-dark border p-2 w-100 text-start">
+            <code>FeedbackResponse.student_id = NULL</code>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4 align-items-center">
+      <div class="col-lg-6">
+        <span class="section-tag">Actionable Intelligence</span>
+        <h2 class="section-title">Built-in NLP Theme &amp; Sentiment Analysis</h2>
+        <p class="text-secondary">
+          Organizers do not have time to read hundreds of unstructured feedback comments manually. EventPulse includes built-in NLP heuristics that categorize comments into positive praise, recurring complaints, and actionable suggestions.
+        </p>
+        <ul class="list-unstyled text-secondary small d-flex flex-column gap-2">
+          <li><i class="bi bi-stars text-warning me-2"></i> Automated sentiment scoring across all submitted text</li>
+          <li><i class="bi bi-stars text-warning me-2"></i> Keyword extraction groups themes (e.g. Venue, Audio, Practical Hands-on)</li>
+          <li><i class="bi bi-stars text-warning me-2"></i> Generates executive event summaries ready for departmental review</li>
+        </ul>
+      </div>
+      <div class="col-lg-6">
+        <div class="ep-card">
+          <h5 class="fw-bold mb-3"><i class="bi bi-chat-heart-fill text-danger me-2"></i>Theme Extraction Sample</h5>
+          <div class="d-flex flex-wrap gap-2 mb-3">
+            <span class="badge bg-success-subtle text-success p-2"><i class="bi bi-plus-circle me-1"></i> Excellent Speaker (89%)</span>
+            <span class="badge bg-success-subtle text-success p-2"><i class="bi bi-plus-circle me-1"></i> Practical Demo (76%)</span>
+            <span class="badge bg-warning-subtle text-warning p-2"><i class="bi bi-dash-circle me-1"></i> Audio Echo in Hall (18%)</span>
+            <span class="badge bg-info-subtle text-info p-2"><i class="bi bi-lightbulb me-1"></i> Add Follow-up Lab (34%)</span>
+          </div>
+          <p class="small text-muted mb-0">Analyzed directly inside Python without external data transmission.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}About EventPulse — Institutional Excellence{% endblock %}
+
+{% block content %}
+<section class="py-5" style="background-color: var(--primary-navy); color: var(--white);">
+  <div class="container text-center py-4">
+    <span class="badge bg-warning text-dark px-3 py-1 mb-3 fw-bold">Mission &amp; Philosophy</span>
+    <h1 class="text-white fw-bold mb-3">About EventPulse</h1>
+    <p class="text-white-50 mx-auto" style="max-width: 650px;">
+      Empowering higher education institutions to build a transparent, data-driven culture of continuous student engagement.
+    </p>
+  </div>
+</section>
+
+<section class="section-pad">
+  <div class="section-container" style="max-width: 860px;">
+    <div class="ep-card mb-4">
+      <h3 class="fw-bold mb-3">Our Core Purpose</h3>
+      <p class="text-secondary">
+        University campuses host hundreds of extracurricular seminars, guest lectures, technical hackathons, cultural festivals, and leadership summits each academic term. Yet, measuring the true educational value and student reception has historically been hindered by low-yield paper feedback or unstructured link-sharing.
+      </p>
+      <p class="text-secondary">
+        <strong>EventPulse</strong> was conceived to solve this bottleneck permanently. By uniting event administration, attendee eligibility verification, automated cryptographic token dispatch, and natural language sentiment analytics, EventPulse provides university leaders with an uncompromised, objective evaluation of campus life.
+      </p>
+    </div>
+
+    <div class="grid-3 mb-4">
+      <div class="ep-card text-center">
+        <div class="fs-2 text-primary mb-2"><i class="bi bi-shield-check"></i></div>
+        <h5 class="fw-bold">Security First</h5>
+        <p class="text-secondary small mb-0">Role-based access control, cryptographic single-use invitation tokens, and FERPA-aligned data segregation.</p>
+      </div>
+
+      <div class="ep-card text-center">
+        <div class="fs-2 text-warning mb-2"><i class="bi bi-speedometer"></i></div>
+        <h5 class="fw-bold">Zero Friction</h5>
+        <p class="text-secondary small mb-0">Students never need to download apps or recall passwords to provide meaningful feedback.</p>
+      </div>
+
+      <div class="ep-card text-center">
+        <div class="fs-2 text-success mb-2"><i class="bi bi-graph-up"></i></div>
+        <h5 class="fw-bold">Actionable Output</h5>
+        <p class="text-secondary small mb-0">Clean charts, sentiment clustering, and executive CSV reports directly usable by academic committees.</p>
+      </div>
+    </div>
+
+    <div class="ep-card">
+      <h4 class="fw-bold mb-3">Built with Trustworthy Standards</h4>
+      <p class="text-secondary small">
+        EventPulse strictly avoids fake statistics or artificial hype. All metrics displayed in our dashboards reflect actual verified database transactions: completed registrations, recorded email deliveries, and authentic student ratings.
+      </p>
+    </div>
+  </div>
+</section>
+{% endblock %}

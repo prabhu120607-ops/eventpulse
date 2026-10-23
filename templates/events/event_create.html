@@ -1,0 +1,142 @@
+{% extends 'base_admin.html' %}
+{% block title %}Create Campus Event — EventPulse{% endblock %}
+{% block page_heading %}Event Creation Workflow{% endblock %}
+
+{% block admin_content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Create University Event</h1>
+    <p class="page-subtitle">Schedule event sessions, configure student audience, and set automated feedback triggers.</p>
+  </div>
+  <a href="{% url 'events:event_list' %}" class="btn-ep btn-ep-outline-navy btn-ep-sm">
+    &larr; Back to Events
+  </a>
+</div>
+
+<div class="row">
+  <div class="col-lg-9">
+    <div class="ep-card">
+      <form method="POST" action="" id="event-create-form">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+          <div class="ep-alert ep-alert-danger mb-4">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <div>
+              {% for error in form.non_field_errors %}
+                <div>{{ error }}</div>
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+
+        <!-- Step 1: Core Event Information -->
+        <div class="border-bottom pb-3 mb-4">
+          <div class="d-flex align-items-center gap-2 mb-3">
+            <span class="step-number m-0" style="width: 32px; height: 32px; font-size: 0.9rem;">1</span>
+            <h5 class="fw-bold mb-0 text-navy">Event Overview &amp; Location</h5>
+          </div>
+
+          <div class="form-group mb-3">
+            <label class="form-label">Event Title *</label>
+            {{ form.title }}
+            {% if form.title.errors %}<div class="text-danger small">{{ form.title.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label">Category *</label>
+              {{ form.category }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Venue / Room / Platform *</label>
+              {{ form.venue }}
+              {% if form.venue.errors %}<div class="text-danger small">{{ form.venue.errors.0 }}</div>{% endif %}
+            </div>
+          </div>
+
+          <div class="form-group mb-3">
+            <label class="form-label">Event Description &amp; Learning Objectives</label>
+            {{ form.description }}
+          </div>
+        </div>
+
+        <!-- Step 2: Schedule & Department -->
+        <div class="border-bottom pb-3 mb-4">
+          <div class="d-flex align-items-center gap-2 mb-3">
+            <span class="step-number m-0" style="width: 32px; height: 32px; font-size: 0.9rem;">2</span>
+            <h5 class="fw-bold mb-0 text-navy">Date, Time &amp; Department Affiliation</h5>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label">Start Date &amp; Time *</label>
+              {{ form.start_time }}
+              {% if form.start_time.errors %}<div class="text-danger small">{{ form.start_time.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">End Date &amp; Time *</label>
+              {{ form.end_time }}
+              {% if form.end_time.errors %}<div class="text-danger small">{{ form.end_time.errors.0 }}</div>{% endif %}
+            </div>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label">Host Department</label>
+              {{ form.department }}
+              <div class="form-text">Leave blank if this is an institution-wide event.</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Target Student Audience</label>
+              {{ form.target_audience }}
+            </div>
+          </div>
+
+          <div class="form-group mb-3">
+            <label class="form-label">Event Publication Status</label>
+            {{ form.status }}
+          </div>
+        </div>
+
+        <!-- Step 3: Feedback Automation Settings -->
+        <div class="mb-4">
+          <div class="d-flex align-items-center gap-2 mb-3">
+            <span class="step-number m-0" style="width: 32px; height: 32px; font-size: 0.9rem;">3</span>
+            <h5 class="fw-bold mb-0 text-navy">Feedback Automation &amp; Privacy Configuration</h5>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label">Feedback Privacy Mode *</label>
+              {{ form.feedback_mode }}
+              <div class="form-text">Anonymous decouples student identity from feedback answers in the database.</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Automated Email Dispatch Trigger</label>
+              {{ form.invitation_schedule }}
+              <div class="form-text">When should the system dispatch feedback emails to verified attendees?</div>
+            </div>
+          </div>
+
+          <div class="form-group mb-3">
+            <label class="form-label">Feedback Deadline</label>
+            {{ form.feedback_deadline }}
+            <div class="form-text">Forms will close automatically for students after this deadline.</div>
+            {% if form.feedback_deadline.errors %}<div class="text-danger small">{{ form.feedback_deadline.errors.0 }}</div>{% endif %}
+          </div>
+        </div>
+
+        <div class="p-3 bg-light rounded-3 border mb-4 small text-secondary">
+          <i class="bi bi-magic text-warning me-1"></i>
+          <strong>Instant Setup:</strong> Submitting will automatically generate a tailored 9-question institutional feedback form including 5-star ratings, duration checks, suggestions, and recommendation metrics.
+        </div>
+
+        <button type="submit" class="btn-ep btn-ep-primary btn-ep-lg" id="btn-save-event">
+          <i class="bi bi-calendar-check-fill"></i> Save Event &amp; Initialize Feedback Form
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

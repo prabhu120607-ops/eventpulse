@@ -1,0 +1,134 @@
+{% extends 'base_admin.html' %}
+{% block title %}Form Builder: {{ feedback_form.title }} — EventPulse{% endblock %}
+{% block page_heading %}Feedback Form Builder{% endblock %}
+
+{% block admin_content %}
+<div class="page-header">
+  <div>
+    <div class="d-flex align-items-center gap-2 mb-1">
+      <span class="badge bg-light text-dark border">{{ event.get_category_display }}</span>
+      <span class="role-pill">{{ event.get_feedback_mode_display }}</span>
+    </div>
+    <h1 class="page-title">{{ feedback_form.title }}</h1>
+    <p class="page-subtitle">Add custom evaluation criteria, rearrange questions, and preview student experience.</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'events:event_detail' event.id %}" class="btn-ep btn-ep-outline-navy btn-ep-sm">
+      &larr; Back to Event
+    </a>
+    <a href="{% url 'feedback:form_preview' feedback_form.id %}" target="_blank" class="btn-ep btn-ep-gold btn-ep-sm">
+      <i class="bi bi-eye-fill"></i> Preview Form as Student
+    </a>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Active Questions List -->
+  <div class="col-lg-7">
+    <div class="ep-card">
+      <div class="ep-card-header">
+        <div class="ep-card-title">
+          <i class="bi bi-list-ol text-primary"></i> Active Form Questions ({{ questions.count }})
+        </div>
+        <span class="small text-muted">Evaluations render in this exact order</span>
+      </div>
+
+      {% if questions %}
+        <div class="d-flex flex-column gap-3">
+          {% for q in questions %}
+            <div class="p-3 bg-light rounded-3 border d-flex justify-content-between align-items-start">
+              <div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                  <span class="badge bg-secondary text-white font-monospace">Q{{ q.order }}</span>
+                  <span class="badge bg-light text-dark border">{{ q.get_question_type_display }}</span>
+                  <span class="badge bg-warning-subtle text-dark">{{ q.get_category_tag_display }}</span>
+                  {% if q.is_required %}
+                    <span class="badge bg-danger-subtle text-danger">Required</span>
+                  {% else %}
+                    <span class="badge bg-secondary-subtle text-muted">Optional</span>
+                  {% endif %}
+                </div>
+                <h6 class="fw-bold mb-1 text-navy">{{ q.question_text }}</h6>
+
+                {% if q.question_type == 'STAR_RATING' %}
+                  <div class="text-warning small">&#9733; &#9733; &#9733; &#9733; &#9733; (1 to 5 Stars)</div>
+                {% elif q.get_choices_list %}
+                  <div class="small text-muted">
+                    Options: {{ q.get_choices_list|join:", " }}
+                  </div>
+                {% endif %}
+              </div>
+
+              <div>
+                <a href="{% url 'feedback:form_delete_question' feedback_form.id q.id %}" class="btn btn-sm btn-outline-danger py-1 px-2" data-confirm="Are you sure you want to delete question '{{ q.question_text|truncatechars:30 }}'?" title="Delete Question">
+                  <i class="bi bi-trash"></i>
+                </a>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state py-4">
+          <div class="empty-state-icon fs-3"><i class="bi bi-question-circle"></i></div>
+          <h6>No Questions in this Form</h6>
+          <p class="small">Use the panel on the right to add evaluation questions.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Add Question Form Panel -->
+  <div class="col-lg-5">
+    <div class="ep-card">
+      <div class="ep-card-header">
+        <div class="ep-card-title">
+          <i class="bi bi-plus-circle-fill text-success"></i> Add Question
+        </div>
+      </div>
+
+      <form method="POST" action="">
+        {% csrf_token %}
+
+        <div class="form-group mb-3">
+          <label class="form-label">Question Text *</label>
+          {{ question_form.question_text }}
+          {% if question_form.question_text.errors %}<div class="text-danger small">{{ question_form.question_text.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="form-group mb-3">
+          <label class="form-label">Question Type *</label>
+          {{ question_form.question_type }}
+        </div>
+
+        <div class="form-group mb-3" id="choices-field-wrap">
+          <label class="form-label">Choice Options</label>
+          {{ question_form.choices_raw }}
+          <div class="form-text">For Multiple or Single Choice: Enter each option on a separate new line.</div>
+        </div>
+
+        <div class="row g-2 mb-3">
+          <div class="col-md-7">
+            <label class="form-label">Category Metric</label>
+            {{ question_form.category_tag }}
+          </div>
+          <div class="col-md-5">
+            <label class="form-label">Order #</label>
+            {{ question_form.order }}
+          </div>
+        </div>
+
+        <div class="form-check mb-4">
+          {{ question_form.is_required }}
+          <label class="form-check-label small" for="{{ question_form.is_required.id_for_label }}">
+            Mandatory question (student must answer before submitting)
+          </label>
+        </div>
+
+        <button type="submit" class="btn-ep btn-ep-primary w-100">
+          <i class="bi bi-plus-lg"></i> Append Question to Form
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

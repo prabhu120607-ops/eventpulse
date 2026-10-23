@@ -1,0 +1,121 @@
+{% extends 'base_admin.html' %}
+{% block title %}Student Roster Directory — EventPulse{% endblock %}
+{% block page_heading %}Registered Student Roster{% endblock %}
+
+{% block admin_content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">University Student Registry</h1>
+    <p class="page-subtitle">Search, verify, and manage eligible student participants across campus departments.</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'students:import_csv' %}" class="btn-ep btn-ep-primary btn-ep-sm" id="btn-import-students">
+      <i class="bi bi-file-earmark-arrow-up-fill"></i> Import Students CSV
+    </a>
+    <a href="{% url 'students:download_sample_csv' %}" class="btn-ep btn-ep-outline-navy btn-ep-sm">
+      <i class="bi bi-download"></i> Sample CSV
+    </a>
+  </div>
+</div>
+
+<!-- Search & Filters -->
+<div class="ep-card p-3 mb-4">
+  <form method="GET" action="" class="row g-3">
+    <div class="col-md-5">
+      <div class="input-group input-group-sm">
+        <span class="input-group-text"><i class="bi bi-search"></i></span>
+        <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Search by name, student number, or email...">
+      </div>
+    </div>
+    <div class="col-md-3">
+      <select name="dept" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="">All Departments</option>
+        {% for dept in departments %}
+          <option value="{{ dept.id }}" {% if selected_dept == dept.id|stringformat:"s" %}selected{% endif %}>{{ dept.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2">
+      <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="">All Statuses</option>
+        <option value="ACTIVE" {% if selected_status == 'ACTIVE' %}selected{% endif %}>Active</option>
+        <option value="GRADUATED" {% if selected_status == 'GRADUATED' %}selected{% endif %}>Graduated</option>
+        <option value="INACTIVE" {% if selected_status == 'INACTIVE' %}selected{% endif %}>Inactive</option>
+      </select>
+    </div>
+    <div class="col-md-2 d-flex gap-2">
+      <button type="submit" class="btn btn-sm btn-primary w-100" style="background-color: var(--primary-navy); border-color: var(--primary-navy);">Search</button>
+      {% if query or selected_dept or selected_status %}
+        <a href="{% url 'students:student_list' %}" class="btn btn-sm btn-outline-secondary">Reset</a>
+      {% endif %}
+    </div>
+  </form>
+</div>
+
+<!-- Table of Students -->
+<div class="ep-card">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <span class="small text-muted">Showing <strong>{{ page_obj.start_index|default:0 }} - {{ page_obj.end_index|default:0 }}</strong> of <strong>{{ total_count }}</strong> students</span>
+  </div>
+
+  {% if page_obj %}
+    <div class="ep-table-wrap">
+      <table class="ep-table">
+        <thead>
+          <tr>
+            <th>Student ID / Roll No</th>
+            <th>Full Name</th>
+            <th>Institutional Email</th>
+            <th>Department</th>
+            <th>Year &amp; Section</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for student in page_obj %}
+            <tr>
+              <td><span class="fw-bold text-navy font-monospace">{{ student.student_number }}</span></td>
+              <td><strong>{{ student.full_name }}</strong></td>
+              <td><a href="mailto:{{ student.university_email }}" class="text-secondary">{{ student.university_email }}</a></td>
+              <td>{{ student.department.name|default:"General" }}</td>
+              <td>{{ student.academic_year }} &bull; Sec {{ student.section }}</td>
+              <td>
+                {% if student.enrollment_status == 'ACTIVE' %}
+                  <span class="badge-status badge-active">Active</span>
+                {% elif student.enrollment_status == 'GRADUATED' %}
+                  <span class="badge-status badge-info">Graduated</span>
+                {% else %}
+                  <span class="badge-status badge-cancelled">Inactive</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+      <div class="d-flex justify-content-center mt-4">
+        <ul class="pagination pagination-sm">
+          {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ query }}&dept={{ selected_dept }}">&larr; Previous</a></li>
+          {% endif %}
+          <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+          {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ query }}&dept={{ selected_dept }}">Next &rarr;</a></li>
+          {% endif %}
+        </ul>
+      </div>
+    {% endif %}
+
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-state-icon"><i class="bi bi-people"></i></div>
+      <h5>No Student Records Found</h5>
+      <p class="small">Upload an attendee roster CSV or adjust search parameters.</p>
+      <a href="{% url 'students:import_csv' %}" class="btn-ep btn-ep-primary btn-ep-sm">Import Student CSV</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

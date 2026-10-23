@@ -1,0 +1,121 @@
+{% extends 'base_admin.html' %}
+{% block title %}Import Student Roster CSV — EventPulse{% endblock %}
+{% block page_heading %}Student Roster Ingestion{% endblock %}
+
+{% block admin_content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">CSV Student Roster Import</h1>
+    <p class="page-subtitle">Batch-register eligible students from registration forms, admissions lists, or attendance sheets.</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'students:student_list' %}" class="btn-ep btn-ep-outline-navy btn-ep-sm">
+      &larr; View Student Directory
+    </a>
+    <a href="{% url 'students:download_sample_csv' %}" class="btn-ep btn-ep-gold btn-ep-sm">
+      <i class="bi bi-download"></i> Download Sample CSV Template
+    </a>
+  </div>
+</div>
+
+<!-- Import Summary Alert if available -->
+{% if summary %}
+  <div class="ep-card mb-4 border-start border-4 border-primary">
+    <h5 class="fw-bold mb-3"><i class="bi bi-clipboard-check-fill text-success me-2"></i>Import Execution Summary</h5>
+    <div class="row g-3 text-center mb-3">
+      <div class="col-md-4">
+        <div class="p-3 bg-light rounded-3">
+          <div class="fs-3 fw-bold text-success">{{ summary.created_count }}</div>
+          <div class="small text-muted">New Students Registered</div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="p-3 bg-light rounded-3">
+          <div class="fs-3 fw-bold text-primary">{{ summary.updated_count }}</div>
+          <div class="small text-muted">Existing Records Updated</div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="p-3 bg-light rounded-3">
+          <div class="fs-3 fw-bold text-warning">{{ summary.skipped_count }}</div>
+          <div class="small text-muted">Skipped / Format Errors</div>
+        </div>
+      </div>
+    </div>
+
+    {% if summary.error_rows %}
+      <div class="p-3 bg-danger-subtle rounded-3 text-danger small">
+        <div class="fw-bold mb-1">Rows with Validation Issues:</div>
+        <ul class="mb-0 ps-3">
+          {% for err in summary.error_rows %}
+            <li>Row {{ err.row }}: {{ err.error }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+  </div>
+{% endif %}
+
+<div class="row">
+  <div class="col-lg-7">
+    <div class="ep-card">
+      <form method="POST" action="" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="form-group mb-4">
+          <label class="form-label fw-bold">Select CSV File (.csv)</label>
+          {{ form.csv_file }}
+          <div class="form-text">{{ form.csv_file.help_text }}</div>
+          {% if form.csv_file.errors %}<div class="text-danger small">{{ form.csv_file.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="form-group mb-4">
+          <label class="form-label">Fallback Department</label>
+          {{ form.default_department }}
+          <div class="form-text">Used if the CSV row does not specify a department name or code.</div>
+        </div>
+
+        <div class="form-check mb-4">
+          {{ form.update_existing }}
+          <label class="form-check-label small" for="{{ form.update_existing.id_for_label }}">
+            Update existing student records if Student ID matches
+          </label>
+        </div>
+
+        <button type="submit" class="btn-ep btn-ep-primary w-100 py-2 fs-6" id="btn-submit-csv">
+          <i class="bi bi-cloud-arrow-up-fill"></i> Upload &amp; Validate Roster
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="ep-card">
+      <h5 class="fw-bold mb-3"><i class="bi bi-info-circle text-primary me-2"></i>CSV File Guidelines</h5>
+      <p class="small text-secondary mb-3">
+        Your CSV file should have a header row with column headers matching any of the supported names:
+      </p>
+
+      <div class="ep-table-wrap mb-3">
+        <table class="ep-table small">
+          <thead>
+            <tr><th>Header</th><th>Required</th><th>Example</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>student_number</code></td><td><span class="badge bg-danger-subtle text-danger">Yes</span></td><td>STU-2024-001</td></tr>
+            <tr><td><code>full_name</code></td><td><span class="badge bg-danger-subtle text-danger">Yes</span></td><td>Alex Rivera</td></tr>
+            <tr><td><code>university_email</code></td><td><span class="badge bg-danger-subtle text-danger">Yes</span></td><td>alex.r@univ.edu</td></tr>
+            <tr><td><code>department</code></td><td><span class="badge bg-secondary-subtle text-dark">Optional</span></td><td>CSE / EEE</td></tr>
+            <tr><td><code>academic_year</code></td><td><span class="badge bg-secondary-subtle text-dark">Optional</span></td><td>3rd Year</td></tr>
+            <tr><td><code>section</code></td><td><span class="badge bg-secondary-subtle text-dark">Optional</span></td><td>A</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="p-3 bg-light rounded-3 small text-muted">
+        <i class="bi bi-shield-check text-success me-1"></i> Student email addresses are used exclusively for sending single-use feedback invitations.
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

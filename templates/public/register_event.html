@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Register for {{ event.title }} &mdash; EventPulse{% endblock %}
+
+{% block content %}
+<section class="section-pad" style="background-color: var(--bg-main); min-height: 85vh;">
+  <div class="container" style="max-width: 760px;">
+
+    {% if registered_success %}
+      <!-- Registration Success Card -->
+      <div class="ep-card p-5 text-center shadow-lg border-start border-4 border-success">
+        <div class="mb-3 text-success fs-1">
+          <i class="bi bi-patch-check-fill"></i>
+        </div>
+        <h2 class="fw-bold mb-2 text-navy" style="color: var(--primary-navy);">Registration Confirmed!</h2>
+        <p class="text-secondary mb-4">
+          Hello <strong>{{ registered_student.full_name }}</strong>, you are successfully enrolled on the official attendee roster for:
+        </p>
+
+        <div class="p-4 bg-light rounded-3 border text-start mb-4">
+          <h4 class="fw-bold text-navy mb-2">{{ event.title }}</h4>
+          <div class="small text-secondary mb-2">
+            <div><i class="bi bi-calendar3 me-2 text-primary"></i> <strong>Date &amp; Time:</strong> {{ event.start_time|date:"l, M d, Y" }} from {{ event.start_time|date:"h:i A" }} to {{ event.end_time|date:"h:i A" }}</div>
+            <div><i class="bi bi-geo-alt me-2 text-danger"></i> <strong>Location:</strong> {{ event.venue }}</div>
+            <div><i class="bi bi-envelope-check me-2 text-success"></i> <strong>Registered Email:</strong> {{ registered_student.university_email }}</div>
+            <div><i class="bi bi-person-badge me-2 text-muted"></i> <strong>Student Roll No:</strong> {{ registered_student.student_number }}</div>
+          </div>
+        </div>
+
+        <!-- Timeline Explainer: Exactly when feedback will be collected -->
+        <div class="p-4 rounded-3 text-start mb-4" style="background-color: var(--gold-accent-subtle); border: 1px solid rgba(198, 167, 107, 0.4);">
+          <div class="d-flex gap-3 align-items-start">
+            <div class="fs-2 text-warning"><i class="bi bi-clock-history"></i></div>
+            <div>
+              <h5 class="fw-bold text-navy mb-1" style="color: var(--primary-navy);">When will feedback be collected?</h5>
+              <p class="small text-dark mb-2">
+                Feedback invitations are <strong>automated</strong>. You do <strong>not</strong> need to manually look for forms during the session:
+              </p>
+              <ul class="small text-dark mb-0 ps-3">
+                <li><strong>Event Concludes:</strong> {{ event.end_time|date:"M d, Y @ h:i A" }}</li>
+                <li><strong>Automatic Invitation:</strong> The system automatically dispatches a unique, single-use secure feedback link to <code>{{ registered_student.university_email }}</code>.</li>
+                <li><strong>Privacy Mode:</strong>
+                  {% if event.feedback_mode == 'ANONYMOUS' %}
+                    <span class="badge bg-success-subtle text-success">100% Anonymous</span> (Your responses cannot be traced back to your student account).
+                  {% else %}
+                    <span class="badge bg-info-subtle text-info">Identified</span> (For academic follow-up).
+                  {% endif %}
+                </li>
+                <li><strong>Submission Window:</strong> Form closes on {{ event.feedback_deadline|date:"M d, Y @ h:i A"|default:"the scheduled deadline" }}.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-center gap-3">
+          <a href="{% url 'public:events_list' %}" class="btn-ep btn-ep-outline-navy">
+            <i class="bi bi-calendar-event"></i> View Other Events
+          </a>
+          <a href="{% url 'public:home' %}" class="btn-ep btn-ep-primary">
+            <i class="bi bi-house"></i> Return to Homepage
+          </a>
+        </div>
+      </div>
+
+    {% else %}
+
+      <!-- Registration Form Card -->
+      <div class="ep-card p-4 p-md-5 shadow-sm">
+        <div class="mb-4 pb-3 border-bottom">
+          <a href="{% url 'public:events_list' %}" class="small text-secondary text-decoration-none d-inline-block mb-2">
+            &larr; Back to Upcoming Events
+          </a>
+          <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+            <div>
+              <span class="badge bg-light text-dark border mb-1">{{ event.get_category_display }}</span>
+              <h2 class="fw-bold text-navy mb-1" style="color: var(--primary-navy);">{{ event.title }}</h2>
+              <div class="small text-muted">
+                <i class="bi bi-calendar3 me-1"></i> {{ event.start_time|date:"M d, Y" }} &bull; {{ event.start_time|date:"h:i A" }} - {{ event.end_time|date:"h:i A" }}
+                &bull; <i class="bi bi-geo-alt me-1"></i> {{ event.venue }}
+              </div>
+            </div>
+            <span class="role-pill">{{ event.get_feedback_mode_display }}</span>
+          </div>
+        </div>
+
+        <p class="text-secondary small mb-4">
+          Register below to reserve your place. Once the session concludes, EventPulse will automatically email your personal feedback evaluation invitation.
+        </p>
+
+        <form method="POST" action="">
+          {% csrf_token %}
+
+          {% if form.errors %}
+            <div class="ep-alert ep-alert-danger mb-4">
+              <i class="bi bi-exclamation-triangle-fill"></i>
+              <div>Please correct the errors in the fields below.</div>
+            </div>
+          {% endif %}
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Student Roll No / ID *</label>
+              {{ form.student_number }}
+              {% if form.student_number.errors %}<div class="text-danger small">{{ form.student_number.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Full Name *</label>
+              {{ form.full_name }}
+              {% if form.full_name.errors %}<div class="text-danger small">{{ form.full_name.errors.0 }}</div>{% endif %}
+            </div>
+          </div>
+
+          <div class="form-group mb-3">
+            <label class="form-label fw-bold">University Email *</label>
+            {{ form.university_email }}
+            <div class="form-text">{{ form.university_email.help_text }}</div>
+            {% if form.university_email.errors %}<div class="text-danger small">{{ form.university_email.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label">Department</label>
+              {{ form.department }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Academic Year</label>
+              {{ form.academic_year }}
+            </div>
+          </div>
+
+          <!-- Automated Feedback Notice -->
+          <div class="p-3 bg-light rounded-3 border mb-4 small text-secondary">
+            <div class="fw-bold text-dark mb-1"><i class="bi bi-lightning-charge-fill text-warning me-1"></i> Automated Post-Event Feedback</div>
+            After the event finishes on <strong>{{ event.end_time|date:"M d, Y at h:i A" }}</strong>, EventPulse automatically sends a secure, personalized single-use feedback link to your email.
+          </div>
+
+          <button type="submit" class="btn-ep btn-ep-primary w-100 py-3 fs-6">
+            <i class="bi bi-check2-circle"></i> Confirm Event Registration
+          </button>
+        </form>
+      </div>
+
+    {% endif %}
+
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Feedback: {{ event.title }} — EventPulse{% endblock %}
+
+{% block content %}
+<section class="section-pad" style="background-color: var(--bg-main); min-height: 85vh;">
+  <div class="container" style="max-width: 760px;">
+
+    {% if is_preview %}
+      <div class="ep-alert ep-alert-info mb-4">
+        <i class="bi bi-eye-fill fs-5"></i>
+        <div>
+          <strong>Administrator Preview Mode:</strong> This simulates the live feedback interface students experience via their secure link. Responses submitted in preview mode are not saved to the database.
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Event Header Card -->
+    <div class="ep-card text-center py-4 mb-4">
+      <div class="brand-logo justify-content-center mb-2" style="color: var(--primary-navy) !important; font-size: 1.25rem;">
+        <span class="pulse-dot"></span>
+        Event<span class="brand-accent">Pulse</span>
+      </div>
+
+      <span class="badge bg-light text-dark border mb-2">{{ event.get_category_display }}</span>
+      <h2 class="fw-bold mb-2 text-navy" style="color: var(--primary-navy);">{{ event.title }}</h2>
+
+      <div class="small text-muted mb-3">
+        <i class="bi bi-calendar3 me-1"></i> {{ event.start_time|date:"M d, Y" }} &bull;
+        <i class="bi bi-geo-alt me-1"></i> {{ event.venue }} &bull;
+        <i class="bi bi-building me-1"></i> {{ event.department.name|default:"University Program" }}
+      </div>
+
+      <!-- Privacy Guarantee Banner -->
+      <div class="p-3 rounded-3 text-start d-flex gap-3 align-items-center {% if is_anonymous %}bg-success-subtle text-success border border-success-subtle{% else %}bg-light text-dark border{% endif %}">
+        <div class="fs-3">
+          {% if is_anonymous %}
+            <i class="bi bi-shield-check"></i>
+          {% else %}
+            <i class="bi bi-person-badge"></i>
+          {% endif %}
+        </div>
+        <div class="small">
+          {% if is_anonymous %}
+            <strong>Verified Anonymous Feedback:</strong> Your answers are cryptographically decoupled from your student profile. Neither the speaker nor faculty organizers will ever see your identity or email.
+          {% else %}
+            <strong>Identified Feedback:</strong> Your name and student ID are included with this submission to allow organizers to follow up on specific academic questions.
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Questions Form -->
+    <div class="ep-card p-4 p-md-5">
+      <form method="POST" action="" id="student-feedback-form">
+        {% csrf_token %}
+
+        {% if form.errors %}
+          <div class="ep-alert ep-alert-danger mb-4">
+            <i class="bi bi-exclamation-octagon-fill"></i>
+            <div>Please complete all required fields indicated in red below.</div>
+          </div>
+        {% endif %}
+
+        {% for question in feedback_form.questions.all %}
+          {% with field_name="question_"|add:question.id|stringformat:"s" %}
+            <div class="mb-4 pb-4 border-bottom">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <label class="form-label fw-bold mb-0 text-navy" style="font-size: 1.05rem;">
+                  <span class="text-muted small me-1">Q{{ question.order }}.</span>
+                  {{ question.question_text }}
+                  {% if question.is_required %}<span class="text-danger">*</span>{% endif %}
+                </label>
+              </div>
+
+              <!-- Question Input types -->
+              {% if question.question_type == 'STAR_RATING' %}
+                <div class="py-2">
+                  <div class="star-input-group">
+                    <input type="radio" id="star5-{{ question.id }}" name="question_{{ question.id }}" value="5" {% if form|dictsort:field_name == '5' or not form.is_bound %}checked{% endif %}>
+                    <label for="star5-{{ question.id }}" title="5 stars - Outstanding">&#9733;</label>
+
+                    <input type="radio" id="star4-{{ question.id }}" name="question_{{ question.id }}" value="4">
+                    <label for="star4-{{ question.id }}" title="4 stars - Very Good">&#9733;</label>
+
+                    <input type="radio" id="star3-{{ question.id }}" name="question_{{ question.id }}" value="3">
+                    <label for="star3-{{ question.id }}" title="3 stars - Good / Average">&#9733;</label>
+
+                    <input type="radio" id="star2-{{ question.id }}" name="question_{{ question.id }}" value="2">
+                    <label for="star2-{{ question.id }}" title="2 stars - Fair">&#9733;</label>
+
+                    <input type="radio" id="star1-{{ question.id }}" name="question_{{ question.id }}" value="1">
+                    <label for="star1-{{ question.id }}" title="1 star - Poor">&#9733;</label>
+                  </div>
+                  <div class="small text-muted mt-1">Select from 1 (Poor) to 5 (Outstanding) stars</div>
+                </div>
+
+              {% elif question.question_type == 'YES_NO' %}
+                <div class="d-flex gap-4 mt-2">
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="question_{{ question.id }}" id="opt-yes-{{ question.id }}" value="Yes" {% if question.is_required %}required{% endif %}>
+                    <label class="form-check-label fw-semibold" for="opt-yes-{{ question.id }}">Yes</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="question_{{ question.id }}" id="opt-no-{{ question.id }}" value="No" {% if question.is_required %}required{% endif %}>
+                    <label class="form-check-label fw-semibold" for="opt-no-{{ question.id }}">No</label>
+                  </div>
+                </div>
+
+              {% elif question.question_type == 'SINGLE_CHOICE' %}
+                <div class="d-flex flex-column gap-2 mt-2">
+                  {% for choice in question.get_choices_list %}
+                    <div class="form-check p-2 rounded bg-light border">
+                      <input class="form-check-input ms-0 me-2" type="radio" name="question_{{ question.id }}" id="opt-{{ question.id }}-{{ forloop.counter }}" value="{{ choice }}" {% if question.is_required %}required{% endif %}>
+                      <label class="form-check-label w-100" for="opt-{{ question.id }}-{{ forloop.counter }}">{{ choice }}</label>
+                    </div>
+                  {% endfor %}
+                </div>
+
+              {% elif question.question_type == 'MULTIPLE_CHOICE' %}
+                <div class="d-flex flex-column gap-2 mt-2">
+                  {% for choice in question.get_choices_list %}
+                    <div class="form-check p-2 rounded bg-light border">
+                      <input class="form-check-input ms-0 me-2" type="checkbox" name="question_{{ question.id }}" id="chk-{{ question.id }}-{{ forloop.counter }}" value="{{ choice }}">
+                      <label class="form-check-label w-100" for="chk-{{ question.id }}-{{ forloop.counter }}">{{ choice }}</label>
+                    </div>
+                  {% endfor %}
+                </div>
+
+              {% elif question.question_type == 'SHORT_TEXT' %}
+                <input type="text" name="question_{{ question.id }}" class="form-control mt-2" placeholder="Your response..." {% if question.is_required %}required{% endif %}>
+
+              {% elif question.question_type == 'LONG_TEXT' %}
+                <textarea name="question_{{ question.id }}" rows="3" class="form-control mt-2" placeholder="Write your constructive thoughts or suggestions here..." {% if question.is_required %}required{% endif %}></textarea>
+              {% endif %}
+
+              <!-- Field Error -->
+              {% for err in form|slice:field_name %}
+                <div class="text-danger small mt-1">{{ err }}</div>
+              {% endfor %}
+            </div>
+          {% endwith %}
+        {% endfor %}
+
+        <div class="pt-2">
+          {% if is_preview %}
+            <button type="button" class="btn-ep btn-ep-primary w-100 py-3 fs-5" disabled>
+              <i class="bi bi-eye"></i> Preview Only (Submissions Disabled)
+            </button>
+          {% else %}
+            <button type="submit" class="btn-ep btn-ep-primary w-100 py-3 fs-5" id="btn-submit-feedback">
+              <i class="bi bi-send-check-fill"></i> Submit Feedback
+            </button>
+          {% endif %}
+          <div class="text-center small text-muted mt-3">
+            <i class="bi bi-lock-fill text-warning me-1"></i> Single-use link &bull; Protected by EventPulse Security Architecture
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

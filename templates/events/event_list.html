@@ -1,0 +1,154 @@
+{% extends 'base_admin.html' %}
+{% block title %}Events Directory — EventPulse{% endblock %}
+{% block page_heading %}Campus Events Management{% endblock %}
+
+{% block admin_content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Campus Events</h1>
+    <p class="page-subtitle">Configure activities, track schedules, and supervise automated feedback workflows.</p>
+  </div>
+  <a href="{% url 'events:event_create' %}" class="btn-ep btn-ep-primary btn-ep-sm" id="btn-create-event-top">
+    <i class="bi bi-calendar-plus-fill"></i> Create New Event
+  </a>
+</div>
+
+<!-- Filters -->
+<div class="ep-card p-3 mb-4">
+  <form method="GET" action="" class="row g-3">
+    <div class="col-md-4">
+      <div class="input-group input-group-sm">
+        <span class="input-group-text"><i class="bi bi-search"></i></span>
+        <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Search event title or venue...">
+      </div>
+    </div>
+    <div class="col-md-2">
+      <select name="category" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="">All Categories</option>
+        <option value="SEMINAR" {% if selected_category == 'SEMINAR' %}selected{% endif %}>Seminar</option>
+        <option value="WORKSHOP" {% if selected_category == 'WORKSHOP' %}selected{% endif %}>Workshop</option>
+        <option value="HACKATHON" {% if selected_category == 'HACKATHON' %}selected{% endif %}>Hackathon</option>
+        <option value="TECH_FEST" {% if selected_category == 'TECH_FEST' %}selected{% endif %}>Tech Festival</option>
+        <option value="CULTURAL" {% if selected_category == 'CULTURAL' %}selected{% endif %}>Cultural</option>
+        <option value="GUEST_LECTURE" {% if selected_category == 'GUEST_LECTURE' %}selected{% endif %}>Guest Lecture</option>
+        <option value="SPORTS" {% if selected_category == 'SPORTS' %}selected{% endif %}>Sports</option>
+      </select>
+    </div>
+    <div class="col-md-2">
+      <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="">All Statuses</option>
+        <option value="UPCOMING" {% if selected_status == 'UPCOMING' %}selected{% endif %}>Upcoming</option>
+        <option value="IN_PROGRESS" {% if selected_status == 'IN_PROGRESS' %}selected{% endif %}>In Progress</option>
+        <option value="COMPLETED" {% if selected_status == 'COMPLETED' %}selected{% endif %}>Completed</option>
+        <option value="CANCELLED" {% if selected_status == 'CANCELLED' %}selected{% endif %}>Cancelled</option>
+      </select>
+    </div>
+    <div class="col-md-2">
+      <select name="dept" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="">All Departments</option>
+        {% for dept in departments %}
+          <option value="{{ dept.id }}" {% if selected_dept == dept.id|stringformat:"s" %}selected{% endif %}>{{ dept.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2 d-flex gap-2">
+      <button type="submit" class="btn btn-sm btn-primary w-100" style="background-color: var(--primary-navy); border-color: var(--primary-navy);">Filter</button>
+      {% if query or selected_category or selected_status or selected_dept %}
+        <a href="{% url 'events:event_list' %}" class="btn btn-sm btn-outline-secondary">Reset</a>
+      {% endif %}
+    </div>
+  </form>
+</div>
+
+<!-- Event List -->
+<div class="ep-card">
+  {% if page_obj %}
+    <div class="ep-table-wrap">
+      <table class="ep-table">
+        <thead>
+          <tr>
+            <th>Event Title</th>
+            <th>Category</th>
+            <th>Department</th>
+            <th>Schedule</th>
+            <th>Status</th>
+            <th>Responses</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ev in page_obj %}
+            <tr>
+              <td>
+                <a href="{% url 'events:event_detail' ev.id %}" class="fw-bold text-navy text-decoration-none">
+                  {{ ev.title }}
+                </a>
+                <div class="small text-muted"><i class="bi bi-geo-alt"></i> {{ ev.venue }}</div>
+              </td>
+              <td><span class="badge bg-light text-dark border">{{ ev.get_category_display }}</span></td>
+              <td>{{ ev.department.name|default:"University-Wide" }}</td>
+              <td class="small text-muted">
+                <div>{{ ev.start_time|date:"M d, Y" }}</div>
+                <div>{{ ev.start_time|date:"h:i A" }} - {{ ev.end_time|date:"h:i A" }}</div>
+              </td>
+              <td>
+                {% if ev.status == 'COMPLETED' %}
+                  <span class="badge-status badge-completed">Completed</span>
+                {% elif ev.status == 'IN_PROGRESS' %}
+                  <span class="badge-status badge-in-progress">In Progress</span>
+                {% elif ev.status == 'UPCOMING' %}
+                  <span class="badge-status badge-upcoming">Upcoming</span>
+                {% elif ev.status == 'CANCELLED' %}
+                  <span class="badge-status badge-cancelled">Cancelled</span>
+                {% else %}
+                  <span class="badge-status badge-draft">{{ ev.get_status_display }}</span>
+                {% endif %}
+              </td>
+              <td>
+                <strong>{{ ev.responses.count }}</strong>
+                <span class="small text-muted">/ {{ ev.registrations.count }}</span>
+              </td>
+              <td>
+                <div class="d-flex gap-1">
+                  <a href="{% url 'events:event_detail' ev.id %}" class="btn btn-sm btn-outline-primary py-0 px-2" title="View Event & Roster">
+                    <i class="bi bi-eye"></i>
+                  </a>
+                  <a href="{% url 'feedback:form_builder' ev.feedback_form.id %}" class="btn btn-sm btn-outline-secondary py-0 px-2" title="Form Builder">
+                    <i class="bi bi-ui-checks"></i>
+                  </a>
+                  <a href="{% url 'feedback:event_responses' ev.id %}" class="btn btn-sm btn-outline-success py-0 px-2" title="View Responses">
+                    <i class="bi bi-chat-dots"></i>
+                  </a>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+      <div class="d-flex justify-content-center mt-4">
+        <ul class="pagination pagination-sm">
+          {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">&larr; Previous</a></li>
+          {% endif %}
+          <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+          {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next &rarr;</a></li>
+          {% endif %}
+        </ul>
+      </div>
+    {% endif %}
+
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-state-icon"><i class="bi bi-calendar-x"></i></div>
+      <h5>No Events Match Your Query</h5>
+      <p class="small">Create an event to start capturing attendee feedback automatically.</p>
+      <a href="{% url 'events:event_create' %}" class="btn-ep btn-ep-primary btn-ep-sm">Create New Event</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

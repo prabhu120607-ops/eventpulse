@@ -1,0 +1,77 @@
+{% extends 'base_admin.html' %}
+{% block title %}Feedback Forms Directory — EventPulse{% endblock %}
+{% block page_heading %}Feedback Forms Administration{% endblock %}
+
+{% block admin_content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Configured Feedback Forms</h1>
+    <p class="page-subtitle">Manage questions, preview mobile interfaces, and inspect response tallies.</p>
+  </div>
+</div>
+
+<div class="ep-card">
+  {% if forms %}
+    <div class="ep-table-wrap">
+      <table class="ep-table">
+        <thead>
+          <tr>
+            <th>Event / Form Title</th>
+            <th>Host Department</th>
+            <th>Privacy Mode</th>
+            <th>Questions</th>
+            <th>Submissions</th>
+            <th>Form Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for form in forms %}
+            <tr>
+              <td>
+                <a href="{% url 'feedback:form_builder' form.id %}" class="fw-bold text-navy text-decoration-none">
+                  {{ form.title }}
+                </a>
+                <div class="small text-muted">{{ form.event.start_time|date:"M d, Y" }} &bull; {{ form.event.venue }}</div>
+              </td>
+              <td>{{ form.event.department.name|default:"University-Wide" }}</td>
+              <td>
+                <span class="role-pill">{{ form.event.get_feedback_mode_display }}</span>
+              </td>
+              <td><span class="badge bg-secondary-subtle text-dark">{{ form.questions.count }} Questions</span></td>
+              <td><strong>{{ form.responses.count }}</strong> Responses</td>
+              <td>
+                {% if form.is_published %}
+                  <span class="badge-status badge-published">Published</span>
+                {% else %}
+                  <span class="badge-status badge-draft">Draft</span>
+                {% endif %}
+              </td>
+              <td>
+                <div class="d-flex gap-2">
+                  <a href="{% url 'feedback:form_builder' form.id %}" class="btn btn-sm btn-outline-primary py-0 px-2" title="Edit Questions">
+                    <i class="bi bi-gear"></i> Builder
+                  </a>
+                  <a href="{% url 'feedback:form_preview' form.id %}" target="_blank" class="btn btn-sm btn-outline-secondary py-0 px-2" title="Preview Student Experience">
+                    <i class="bi bi-eye"></i> Preview
+                  </a>
+                  <a href="{% url 'feedback:event_responses' form.event.id %}" class="btn btn-sm btn-outline-success py-0 px-2" title="Responses">
+                    <i class="bi bi-card-text"></i>
+                  </a>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-state-icon"><i class="bi bi-ui-checks-grid"></i></div>
+      <h5>No Feedback Forms Configured</h5>
+      <p class="small">Create an event to automatically initialize its tailored feedback form.</p>
+      <a href="{% url 'events:event_create' %}" class="btn-ep btn-ep-primary btn-ep-sm">Create New Event</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

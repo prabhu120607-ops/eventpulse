@@ -1,0 +1,318 @@
+{% extends 'base_admin.html' %}
+{% block title %}{{ event.title }} — EventPulse{% endblock %}
+{% block page_heading %}Event Details &amp; Feedback Operations{% endblock %}
+
+{% block admin_content %}
+<!-- Event Top Summary -->
+<div class="page-header">
+  <div>
+    <div class="d-flex align-items-center gap-2 mb-1">
+      <span class="badge bg-light text-dark border">{{ event.get_category_display }}</span>
+      {% if event.status == 'COMPLETED' %}
+        <span class="badge-status badge-completed">Completed</span>
+      {% elif event.status == 'IN_PROGRESS' %}
+        <span class="badge-status badge-in-progress">In Progress</span>
+      {% elif event.status == 'UPCOMING' %}
+        <span class="badge-status badge-upcoming">Upcoming</span>
+      {% else %}
+        <span class="badge-status badge-draft">{{ event.get_status_display }}</span>
+      {% endif %}
+      <span class="role-pill">{{ event.get_feedback_mode_display }}</span>
+    </div>
+    <h1 class="page-title">{{ event.title }}</h1>
+    <div class="small text-muted">
+      <i class="bi bi-calendar3 me-1"></i> {{ event.start_time|date:"M d, Y, h:i A" }} &ndash; {{ event.end_time|date:"h:i A" }} &bull;
+      <i class="bi bi-geo-alt me-1"></i> {{ event.venue }} &bull;
+      <i class="bi bi-building me-1"></i> {{ event.department.name|default:"University-Wide" }}
+    </div>
+  </div>
+
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{% url 'events:event_edit' event.id %}" class="btn-ep btn-ep-outline-navy btn-ep-sm">
+      <i class="bi bi-pencil"></i> Edit Event
+    </a>
+    <a href="{% url 'feedback:form_builder' event.feedback_form.id %}" class="btn-ep btn-ep-primary btn-ep-sm">
+      <i class="bi bi-ui-checks"></i> Form Builder ({{ event.feedback_form.questions.count }} Qs)
+    </a>
+    <a href="{% url 'feedback:form_preview' event.feedback_form.id %}" target="_blank" class="btn-ep btn-ep-outline-navy btn-ep-sm">
+      <i class="bi bi-eye"></i> Preview Form
+    </a>
+    <a href="{% url 'events:toggle_pause' event.id %}" class="btn-ep {% if event.invitations_paused %}btn-ep-gold{% else %}btn-ep-outline-navy{% endif %} btn-ep-sm" title="Pause or resume scheduled automated email invitations">
+      <i class="bi {% if event.invitations_paused %}bi-play-circle-fill{% else %}bi-pause-circle-fill{% endif %}"></i>
+      {% if event.invitations_paused %}Resume Automation{% else %}Pause Automation{% endif %}
+    </a>
+  </div>
+</div>
+
+<!-- Telemetry Metric Cards -->
+<div class="metric-grid">
+  <div class="metric-card">
+    <span class="metric-label">Registered Students</span>
+    <span class="metric-val">{{ reg_count }}</span>
+    <span class="metric-subtext">{{ attended_count }} verified attendees</span>
+  </div>
+
+  <div class="metric-card gold">
+    <span class="metric-label">Invitations Dispatched</span>
+    <span class="metric-val">{{ sent_count }}</span>
+    <span class="metric-subtext">{{ pending_count }} pending in queue</span>
+  </div>
+
+  <div class="metric-card success">
+    <span class="metric-label">Submitted Responses</span>
+    <span class="metric-val">{{ response_count }}</span>
+    <span class="metric-subtext">Completed evaluations</span>
+  </div>
+
+  <div class="metric-card gold">
+    <span class="metric-label">Response Rate</span>
+    <span class="metric-val">{{ response_rate }}%</span>
+    <span class="metric-subtext">{{ response_count }} / {{ attended_count|default:1 }} attendees</span>
+  </div>
+
+  <div class="metric-card warning">
+    <span class="metric-label">Average Satisfaction</span>
+    <span class="metric-val">{{ avg_rating }} <small class="fs-6 text-muted">/ 5.0</small></span>
+    <span class="metric-subtext">
+      {% if avg_rating > 0 %}<span class="text-warning">★ ★ ★ ★ ★</span>{% else %}Awaiting responses{% endif %}
+    </span>
+  </div>
+</div>
+
+<!-- Feedback Operations Bar -->
+<div class="ep-card p-3 mb-4 bg-light">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+      <div class="fw-bold text-navy"><i class="bi bi-lightning-charge-fill text-warning me-1"></i> Feedback Automation Schedule: {{ event.get_invitation_schedule_display }}</div>
+      <div class="small text-muted">
+        Feedback Deadline: <strong>{{ event.feedback_deadline|date:"M d, Y @ h:i A"|default:"Not configured (open)" }}</strong>
+        {% if event.invitations_paused %}&bull; <span class="badge bg-warning text-dark">Automations Currently Paused</span>{% endif %}
+      </div>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{% url 'feedback:trigger_event_invitations' event.id %}" class="btn-ep btn-ep-primary btn-ep-sm" data-confirm="Are you sure you want to generate and dispatch feedback invitations to all eligible attendees right now?">
+        <i class="bi bi-send-fill"></i> Dispatch Invitations Now
+      </a>
+      <a href="{% url 'feedback:send_reminders' event.id %}" class="btn-ep btn-ep-gold btn-ep-sm" data-confirm="Send feedback reminder emails to students who have not yet submitted?">
+        <i class="bi bi-bell-fill"></i> Send Reminders
+      </a>
+      <a href="{% url 'feedback:event_responses' event.id %}" class="btn-ep btn-ep-outline-navy btn-ep-sm">
+        <i class="bi bi-card-text"></i> View Responses ({{ response_count }})
+      </a>
+      <a href="{% url 'analytics:event_report_csv' event.id %}" class="btn-ep btn-ep-outline-navy btn-ep-sm">
+        <i class="bi bi-filetype-csv"></i> Export CSV
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Roster & Invitations Tabs -->
+<div class="row g-4 mb-4">
+  <!-- Registered Students Roster -->
+  <div class="col-lg-7">
+    <div class="ep-card h-100">
+      <div class="ep-card-header">
+        <div class="ep-card-title">
+          <i class="bi bi-people-fill text-primary"></i> Registered Attendees ({{ reg_count }})
+        </div>
+        <button type="button" class="btn-ep btn-ep-outline-navy btn-ep-sm" data-bs-toggle="modal" data-bs-target="#addStudentsModal">
+          <i class="bi bi-person-plus"></i> Add Attendees
+        </button>
+      </div>
+
+      {% if registrations %}
+        <div class="ep-table-wrap">
+          <table class="ep-table">
+            <thead>
+              <tr>
+                <th>Student ID</th>
+                <th>Name</th>
+                <th>Department</th>
+                <th>Eligibility</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for reg in registrations %}
+                <tr>
+                  <td class="font-monospace small">{{ reg.student.student_number }}</td>
+                  <td><strong>{{ reg.student.full_name }}</strong></td>
+                  <td>{{ reg.student.department.code|default:"—" }}</td>
+                  <td>
+                    {% if reg.attended %}
+                      <span class="badge bg-success-subtle text-success small">Eligible Attendee</span>
+                    {% else %}
+                      <span class="badge bg-secondary-subtle text-secondary small">Absent</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="empty-state py-4">
+          <div class="empty-state-icon fs-3"><i class="bi bi-people"></i></div>
+          <h6>No Students Registered For This Event</h6>
+          <p class="small mb-3">Add participants from your directory or import a CSV roster.</p>
+          <button type="button" class="btn-ep btn-ep-primary btn-ep-sm" data-bs-toggle="modal" data-bs-target="#addStudentsModal">
+            Add Registered Students
+          </button>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Dispatch & Invitations Telemetry -->
+  <div class="col-lg-5">
+    <div class="ep-card h-100">
+      <div class="ep-card-header">
+        <div class="ep-card-title">
+          <i class="bi bi-envelope-paper-fill text-warning"></i> Invitation Tokens ({{ invitations.count }})
+        </div>
+        <a href="{% url 'feedback:invitations_list' %}?event={{ event.id }}" class="small fw-semibold">View All &rarr;</a>
+      </div>
+
+      {% if invitations %}
+        <div class="d-flex flex-column gap-2" style="max-height: 400px; overflow-y: auto;">
+          {% for inv in invitations %}
+            <div class="p-2 border rounded-3 bg-light d-flex justify-content-between align-items-center small">
+              <div>
+                <strong>{{ inv.student.full_name }}</strong>
+                <div class="text-muted" style="font-size: 0.75rem;">
+                  Token: <code>{{ inv.token|truncatechars:12 }}</code> &bull; Reminders: {{ inv.reminder_count }}
+                </div>
+              </div>
+              <div>
+                {% if inv.status == 'COMPLETED' %}
+                  <span class="badge bg-success-subtle text-success">Submitted</span>
+                {% elif inv.status == 'SENT' %}
+                  <span class="badge bg-info-subtle text-info">Delivered</span>
+                {% elif inv.status == 'FAILED' %}
+                  <span class="badge bg-danger-subtle text-danger">Failed</span>
+                {% else %}
+                  <span class="badge bg-warning-subtle text-warning">Pending</span>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state py-4">
+          <div class="empty-state-icon fs-3"><i class="bi bi-send"></i></div>
+          <h6>No Invitations Created Yet</h6>
+          <p class="small">Invitations generate automatically when the event finishes, or click 'Dispatch Invitations Now' above.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Management Improvement Actions -->
+<div class="ep-card">
+  <div class="ep-card-header">
+    <div class="ep-card-title">
+      <i class="bi bi-check2-square text-success"></i> Department Management Improvement Actions
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-7">
+      {% if actions %}
+        <div class="d-flex flex-column gap-3">
+          {% for act in actions %}
+            <div class="p-3 bg-light rounded-3 border-start border-4 {% if act.status == 'COMPLETED' %}border-success{% elif act.status == 'IN_PROGRESS' %}border-primary{% else %}border-warning{% endif %}">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <h6 class="fw-bold mb-0 text-navy">{{ act.title }}</h6>
+                <span class="badge bg-secondary-subtle text-dark small">{{ act.get_status_display }}</span>
+              </div>
+              <p class="small text-secondary mb-1">{{ act.description }}</p>
+              <div class="small text-muted">
+                Assigned: <strong>{{ act.assigned_to.get_full_name|default:act.assigned_to.username|default:"Unassigned" }}</strong> &bull; {{ act.created_at|date:"M d, Y" }}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="p-4 bg-light rounded-3 text-center text-muted small">
+          <i class="bi bi-clipboard2-check fs-3 d-block mb-1"></i>
+          No continuous improvement actions logged yet for this event. Record actions taken from student feedback suggestions.
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="col-lg-5">
+      <div class="p-3 border rounded-3 bg-light">
+        <h6 class="fw-bold mb-3">Log Corrective / Enhancement Action</h6>
+        <form method="POST" action="">
+          {% csrf_token %}
+          <input type="hidden" name="add_action" value="1">
+          <div class="form-group mb-2">
+            <label class="form-label small">Action Title</label>
+            {{ action_form.title }}
+          </div>
+          <div class="form-group mb-2">
+            <label class="form-label small">Plan / Details</label>
+            {{ action_form.description }}
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label small">Assignee</label>
+              {{ action_form.assigned_to }}
+            </div>
+            <div class="col-6">
+              <label class="form-label small">Status</label>
+              {{ action_form.status }}
+            </div>
+          </div>
+          <button type="submit" class="btn-ep btn-ep-primary btn-ep-sm w-100">
+            <i class="bi bi-plus-circle"></i> Record Action
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Add Students to Event -->
+<div class="modal fade" id="addStudentsModal" tabindex="-1" aria-labelledby="addStudentsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <form method="POST" action="{% url 'events:associate_students' event.id %}">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold" id="addStudentsModalLabel">Enroll Students into Event Roster</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="small text-muted mb-3">
+            Select students from the registered student directory to attach to <strong>{{ event.title }}</strong>:
+          </p>
+
+          {% if all_students %}
+            <div style="max-height: 320px; overflow-y: auto;" class="border rounded p-2">
+              {% for stu in all_students %}
+                <div class="form-check p-2 border-bottom">
+                  <input class="form-check-input" type="checkbox" name="selected_students" value="{{ stu.id }}" id="chk-stu-{{ stu.id }}">
+                  <label class="form-check-label small d-flex justify-content-between" for="chk-stu-{{ stu.id }}">
+                    <span><strong>{{ stu.full_name }}</strong> ({{ stu.student_number }})</span>
+                    <span class="text-muted">{{ stu.department.code|default:"" }} &bull; {{ stu.university_email }}</span>
+                  </label>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="alert alert-info small mb-0">
+              All active students are already enrolled, or no students are in the database.
+              <a href="{% url 'students:import_csv' %}">Upload CSV Roster</a> first.
+            </div>
+          {% endif %}
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn-ep btn-ep-primary btn-ep-sm">Enroll Selected Students</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

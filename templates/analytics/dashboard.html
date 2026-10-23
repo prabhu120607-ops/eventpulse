@@ -1,0 +1,180 @@
+{% extends 'base_admin.html' %}
+{% block title %}Institutional Analytics &amp; Themes — EventPulse{% endblock %}
+{% block page_heading %}Institutional Feedback Analytics{% endblock %}
+
+{% block admin_content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Campus Experience Intelligence</h1>
+    <p class="page-subtitle">Cross-department benchmarks, satisfaction distributions, and natural language sentiment telemetry.</p>
+  </div>
+  <a href="{% url 'analytics:reports_home' %}" class="btn-ep btn-ep-gold btn-ep-sm">
+    <i class="bi bi-file-earmark-spreadsheet-fill"></i> Download Reports &amp; Exports
+  </a>
+</div>
+
+<!-- Filters Bar -->
+<div class="ep-card p-3 mb-4">
+  <form method="GET" action="" class="row g-3">
+    <div class="col-md-5">
+      <select name="event" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="">All University Events (Aggregate)</option>
+        {% for ev in all_events %}
+          <option value="{{ ev.id }}" {% if selected_event == ev.id|stringformat:"s" %}selected{% endif %}>{{ ev.title }} ({{ ev.start_time|date:"M d, Y" }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3">
+      <select name="dept" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="">All Departments</option>
+        {% for dept in departments %}
+          <option value="{{ dept.id }}" {% if selected_dept == dept.id|stringformat:"s" %}selected{% endif %}>{{ dept.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2">
+      <select name="category" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="">All Categories</option>
+        <option value="SEMINAR" {% if selected_category == 'SEMINAR' %}selected{% endif %}>Seminar</option>
+        <option value="WORKSHOP" {% if selected_category == 'WORKSHOP' %}selected{% endif %}>Workshop</option>
+        <option value="HACKATHON" {% if selected_category == 'HACKATHON' %}selected{% endif %}>Hackathon</option>
+        <option value="TECH_FEST" {% if selected_category == 'TECH_FEST' %}selected{% endif %}>Tech Fest</option>
+        <option value="GUEST_LECTURE" {% if selected_category == 'GUEST_LECTURE' %}selected{% endif %}>Guest Lecture</option>
+      </select>
+    </div>
+    <div class="col-md-2">
+      <a href="{% url 'analytics:dashboard' %}" class="btn btn-sm btn-outline-secondary w-100">Reset</a>
+    </div>
+  </form>
+</div>
+
+<!-- Core Metrics Ribbon -->
+<div class="metric-grid">
+  <div class="metric-card">
+    <span class="metric-label">Eligible Attendees</span>
+    <span class="metric-val">{{ total_eligible }}</span>
+    <span class="metric-subtext">Verified attendance</span>
+  </div>
+
+  <div class="metric-card">
+    <span class="metric-label">Invitations Dispatched</span>
+    <span class="metric-val">{{ delivered_invitations }} <small class="fs-6 text-muted">/ {{ total_invitations }}</small></span>
+    <span class="metric-subtext">Delivery Rate: {{ delivery_rate }}%</span>
+  </div>
+
+  <div class="metric-card success">
+    <span class="metric-label">Submitted Responses</span>
+    <span class="metric-val">{{ submitted_responses }}</span>
+    <span class="metric-subtext">Verified evaluations</span>
+  </div>
+
+  <div class="metric-card gold">
+    <span class="metric-label">Response Rate</span>
+    <span class="metric-val">{{ response_rate }}%</span>
+    <span class="metric-subtext">Submissions / Eligible</span>
+  </div>
+
+  <div class="metric-card warning">
+    <span class="metric-label">Average Satisfaction</span>
+    <span class="metric-val">{{ avg_rating }} <small class="fs-6 text-muted">/ 5.0</small></span>
+    <span class="metric-subtext">Campus Satisfaction Index</span>
+  </div>
+</div>
+
+<!-- Charts Row 1: Satisfaction Distribution & Department Comparisons -->
+<div class="row g-4 mb-4">
+  <div class="col-lg-6">
+    <div class="ep-card h-100">
+      <div class="ep-card-header">
+        <div class="ep-card-title"><i class="bi bi-bar-chart-fill text-warning"></i> Satisfaction Rating Distribution</div>
+        <span class="badge bg-light text-dark border">1 to 5 Stars</span>
+      </div>
+      <div style="height: 280px; position: relative;">
+        {% if submitted_responses > 0 %}
+          <canvas id="satisfactionDistChart"></canvas>
+        {% else %}
+          <div class="empty-state">
+            <div class="empty-state-icon"><i class="bi bi-bar-chart"></i></div>
+            <h6>No Response Data</h6>
+            <p class="small">Submit feedback on an event to visualize distribution.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="ep-card h-100">
+      <div class="ep-card-header">
+        <div class="ep-card-title"><i class="bi bi-diagram-3-fill text-primary"></i> Department Satisfaction Comparison</div>
+        <span class="badge bg-light text-dark border">Average Star Rating</span>
+      </div>
+      <div style="height: 280px; position: relative;">
+        <canvas id="deptCompChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Charts Row 2: Response Trend over 14 Days -->
+<div class="ep-card mb-4">
+  <div class="ep-card-header">
+    <div class="ep-card-title"><i class="bi bi-graph-up-arrow text-primary"></i> 14-Day Feedback Submission Trend</div>
+    <span class="small text-muted">Telemetry streams over time</span>
+  </div>
+  <div style="height: 260px; position: relative;">
+    <canvas id="responseTrend14Chart"></canvas>
+  </div>
+</div>
+
+<!-- AI Feedback Synthesis & Themes -->
+{% if ai_results %}
+  <div class="ep-card">
+    <div class="ep-card-header">
+      <div class="ep-card-title"><i class="bi bi-cpu-fill text-warning"></i> Natural Language Feedback Themes</div>
+      <span class="badge bg-warning-subtle text-dark">Automated NLP Analysis</span>
+    </div>
+
+    <div class="d-flex flex-column gap-3">
+      {% for result in ai_results %}
+        <div class="p-3 bg-light rounded-3 border">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="fw-bold mb-0 text-navy">{{ result.event.title }}</h6>
+            <span class="badge bg-secondary-subtle text-dark">{{ result.sentiment_label }} &bull; {{ result.positive_percentage }}% Positive</span>
+          </div>
+          <p class="small text-secondary mb-2">{{ result.executive_summary }}</p>
+
+          <div class="d-flex flex-wrap gap-2">
+            {% for theme in result.positive_themes %}
+              <span class="badge bg-success-subtle text-success small"><i class="bi bi-check-circle me-1"></i>{{ theme }}</span>
+            {% endfor %}
+            {% for complaint in result.common_complaints %}
+              <span class="badge bg-warning-subtle text-warning small"><i class="bi bi-exclamation-circle me-1"></i>{{ complaint|truncatechars:40 }}</span>
+            {% endfor %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Rating distribution
+    const ratingData = {{ rating_data_json|safe }};
+    initRatingDistributionChart('satisfactionDistChart', ratingData);
+
+    // 2. Department comparison
+    const deptLabels = {{ dept_labels_json|safe }};
+    const deptRatings = {{ dept_ratings_json|safe }};
+    initDepartmentComparisonChart('deptCompChart', deptLabels, deptRatings);
+
+    // 3. 14-day trend
+    const trendLabels = {{ trend_labels_json|safe }};
+    const trendCounts = {{ trend_counts_json|safe }};
+    initResponseTrendChart('responseTrend14Chart', trendLabels, trendCounts);
+});
+</script>
+{% endblock %}

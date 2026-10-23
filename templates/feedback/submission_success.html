@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Feedback Submitted — Thank You!{% endblock %}
+
+{% block content %}
+<section class="section-pad d-flex align-items-center" style="min-height: 75vh;">
+  <div class="container text-center" style="max-width: 580px;">
+    <div class="ep-card p-5 shadow-lg">
+      <div class="mb-3 text-success" style="font-size: 4rem;">
+        <i class="bi bi-patch-check-fill"></i>
+      </div>
+      <h2 class="fw-bold mb-2 text-navy" style="color: var(--primary-navy);">Thank You For Your Feedback!</h2>
+      <p class="text-secondary mb-4">
+        Your evaluation has been successfully recorded and processed. Your valuable perspectives will directly empower event coordinators to enhance future university activities.
+      </p>
+
+      <div class="p-3 bg-light rounded-3 border mb-4 small text-muted">
+        <i class="bi bi-shield-lock-fill text-warning me-1"></i>
+        Your single-use link has now been marked complete. No further action is required.
+      </div>
+
+      <a href="{% url 'public:home' %}" class="btn-ep btn-ep-primary">
+        <i class="bi bi-house-door-fill"></i> Return to Campus Homepage
+      </a>
+    </div>
+  </div>
+</section>
+{% endblock %}

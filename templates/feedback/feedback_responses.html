@@ -1,0 +1,218 @@
+{% extends 'base_admin.html' %}
+{% block title %}Responses: {{ event.title }} — EventPulse{% endblock %}
+{% block page_heading %}Feedback Responses &amp; Evaluations{% endblock %}
+
+{% block admin_content %}
+<div class="page-header">
+  <div>
+    <div class="d-flex align-items-center gap-2 mb-1">
+      <span class="badge bg-light text-dark border">{{ event.get_category_display }}</span>
+      <span class="role-pill">{{ event.get_feedback_mode_display }}</span>
+    </div>
+    <h1 class="page-title">{{ event.title }} &mdash; Feedback</h1>
+    <p class="page-subtitle">Submitted evaluations from verified participants.</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'events:event_detail' event.id %}" class="btn-ep btn-ep-outline-navy btn-ep-sm">
+      &larr; Back to Event
+    </a>
+    <a href="{% url 'analytics:event_report_csv' event.id %}" class="btn-ep btn-ep-gold btn-ep-sm">
+      <i class="bi bi-file-earmark-spreadsheet-fill"></i> Export CSV Report
+    </a>
+  </div>
+</div>
+
+<!-- Telemetry Summary -->
+<div class="metric-grid mb-4">
+  <div class="metric-card success">
+    <span class="metric-label">Total Submissions</span>
+    <span class="metric-val">{{ total_responses }}</span>
+    <span class="metric-subtext">Verified evaluations</span>
+  </div>
+
+  <div class="metric-card warning">
+    <span class="metric-label">Average Satisfaction</span>
+    <span class="metric-val">{{ avg_rating }} <small class="fs-6 text-muted">/ 5.0</small></span>
+    <span class="metric-subtext"><span class="text-warning">&#9733; &#9733; &#9733; &#9733; &#9733;</span></span>
+  </div>
+
+  <div class="metric-card gold">
+    <span class="metric-label">Sentiment Profile</span>
+    <span class="metric-val fs-4">{{ ai_analysis.sentiment_label|default:"Balanced / Neutral" }}</span>
+    <span class="metric-subtext">NLP Classification</span>
+  </div>
+</div>
+
+<!-- AI Summary Card if available -->
+{% if ai_analysis %}
+  <div class="ep-card mb-4 border-start border-4 border-warning">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h5 class="fw-bold mb-0 text-navy"><i class="bi bi-cpu-fill text-warning me-2"></i>Executive Event Synthesis</h5>
+      <span class="badge bg-light text-dark border">Analyzed {{ ai_analysis.total_reviews_analyzed }} Reviews</span>
+    </div>
+    <p class="text-secondary small mb-3">{{ ai_analysis.executive_summary }}</p>
+
+    <div class="row g-3">
+      {% if ai_analysis.positive_themes %}
+        <div class="col-md-6">
+          <div class="p-3 bg-light rounded-3 small">
+            <strong class="text-success"><i class="bi bi-hand-thumbs-up me-1"></i>Key Positive Strengths:</strong>
+            <ul class="mb-0 mt-1 ps-3">
+              {% for theme in ai_analysis.positive_themes %}
+                <li>{{ theme }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      {% endif %}
+
+      {% if ai_analysis.key_suggestions %}
+        <div class="col-md-6">
+          <div class="p-3 bg-light rounded-3 small">
+            <strong class="text-primary"><i class="bi bi-lightbulb me-1"></i>Student Recommendations:</strong>
+            <ul class="mb-0 mt-1 ps-3">
+              {% for sug in ai_analysis.key_suggestions %}
+                <li>"{{ sug }}"</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+{% endif %}
+
+<!-- Responses Table -->
+<div class="ep-card">
+  <div class="ep-card-header">
+    <div class="ep-card-title"><i class="bi bi-chat-quote-fill text-primary"></i> Detailed Submissions</div>
+  </div>
+
+  {% if page_obj %}
+    <div class="ep-table-wrap">
+      <table class="ep-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Respondent</th>
+            <th>Overall Rating</th>
+            <th>Sentiment</th>
+            <th>Submission Date</th>
+            <th>Inspect Answers</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for resp in page_obj %}
+            <tr>
+              <td class="text-muted small">{{ forloop.counter }}</td>
+              <td>
+                {% if resp.is_anonymous %}
+                  <span class="badge bg-secondary-subtle text-dark"><i class="bi bi-shield-lock me-1"></i>Anonymous Attendee</span>
+                {% else %}
+                  <strong>{{ resp.student.full_name }}</strong>
+                  <div class="small text-muted">{{ resp.student.student_number }}</div>
+                {% endif %}
+              </td>
+              <td>
+                <span class="fw-bold text-warning">&#9733; {{ resp.overall_rating }}.0</span>
+              </td>
+              <td>
+                {% if resp.sentiment == 'POSITIVE' %}
+                  <span class="badge bg-success-subtle text-success">Positive</span>
+                {% elif resp.sentiment == 'NEGATIVE' %}
+                  <span class="badge bg-danger-subtle text-danger">Critical</span>
+                {% else %}
+                  <span class="badge bg-light text-secondary border">Neutral</span>
+                {% endif %}
+              </td>
+              <td class="small text-muted">{{ resp.submitted_at|date:"M d, Y @ h:i A" }}</td>
+              <td>
+                <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2" data-bs-toggle="modal" data-bs-target="#responseModal-{{ resp.id }}">
+                  <i class="bi bi-card-text"></i> View Answers ({{ resp.answers.count }})
+                </button>
+              </td>
+            </tr>
+
+            <!-- Modal for individual response details -->
+            <div class="modal fade" id="responseModal-{{ resp.id }}" tabindex="-1" aria-hidden="true">
+              <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Evaluation Details &mdash; {{ resp.event.title }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                    <div class="p-3 bg-light rounded-3 mb-3 small d-flex justify-content-between align-items-center">
+                      <div>
+                        <strong>Respondent:</strong>
+                        {% if resp.is_anonymous %}
+                          <span class="badge bg-secondary-subtle text-dark">Verified Anonymous</span>
+                        {% else %}
+                          {{ resp.student.full_name }} ({{ resp.student.student_number }})
+                        {% endif %}
+                      </div>
+                      <div>
+                        <strong>Overall:</strong> <span class="text-warning">&#9733; {{ resp.overall_rating }}/5</span> &bull;
+                        <span class="text-muted">{{ resp.submitted_at|date:"M d, Y" }}</span>
+                      </div>
+                    </div>
+
+                    <div class="d-flex flex-column gap-3">
+                      {% for ans in resp.answers.all %}
+                        <div class="p-3 border rounded-3 bg-white">
+                          <div class="small text-muted mb-1 fw-bold">
+                            Q{{ ans.question.order }}. {{ ans.question.question_text }}
+                          </div>
+                          <div class="text-dark">
+                            {% if ans.question.question_type == 'STAR_RATING' %}
+                              <span class="text-warning fw-bold">&#9733; {{ ans.rating_value }} / 5 Stars</span>
+                            {% elif ans.selected_choices %}
+                              <span class="badge bg-primary-subtle text-primary">{{ ans.selected_choices|join:", " }}</span>
+                            {% elif ans.text_value %}
+                              <div class="p-2 bg-light rounded small mt-1 font-monospace">{{ ans.text_value }}</div>
+                            {% else %}
+                              <span class="text-muted fst-italic">No response provided</span>
+                            {% endif %}
+                          </div>
+                        </div>
+                      {% endfor %}
+                    </div>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+      <div class="d-flex justify-content-center mt-4">
+        <ul class="pagination pagination-sm">
+          {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">&larr; Previous</a></li>
+          {% endif %}
+          <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+          {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next &rarr;</a></li>
+          {% endif %}
+        </ul>
+      </div>
+    {% endif %}
+
+  {% else %}
+    <div class="empty-state py-4">
+      <div class="empty-state-icon fs-3"><i class="bi bi-chat-dots"></i></div>
+      <h5>No Evaluations Submitted Yet</h5>
+      <p class="small mb-3">Feedback responses will stream in as students complete their invitations.</p>
+      <a href="{% url 'feedback:trigger_event_invitations' event.id %}" class="btn-ep btn-ep-primary btn-ep-sm">
+        Dispatch Invitations Now
+      </a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

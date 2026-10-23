@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Contact Support — EventPulse{% endblock %}
+
+{% block content %}
+<section class="py-5" style="background-color: var(--primary-navy); color: var(--white);">
+  <div class="container text-center py-4">
+    <span class="badge bg-warning text-dark px-3 py-1 mb-3 fw-bold">Support &amp; Inquiries</span>
+    <h1 class="text-white fw-bold mb-3">Institutional Contact</h1>
+    <p class="text-white-50 mx-auto" style="max-width: 650px;">
+      Have a question regarding campus deployment, role provisioning, or feedback configuration? Connect with our team.
+    </p>
+  </div>
+</section>
+
+<section class="section-pad">
+  <div class="section-container" style="max-width: 800px;">
+    {% if submitted %}
+      <div class="ep-alert ep-alert-success">
+        <i class="bi bi-check-circle-fill fs-4"></i>
+        <div>
+          <h5 class="fw-bold mb-1">Inquiry Received Successfully</h5>
+          <p class="mb-0 small">Thank you for contacting the EventPulse support desk. An institutional systems administrator will review your message shortly.</p>
+        </div>
+      </div>
+    {% endif %}
+
+    <div class="row g-4">
+      <div class="col-md-7">
+        <div class="ep-card">
+          <h4 class="fw-bold mb-3">Send a Message</h4>
+          <form method="POST" action="">
+            {% csrf_token %}
+            <div class="form-group mb-3">
+              <label class="form-label" for="contact-name">Full Name</label>
+              <input type="text" id="contact-name" name="name" class="form-control" placeholder="Prof. Jane Doe / John Smith" required>
+            </div>
+            <div class="form-group mb-3">
+              <label class="form-label" for="contact-email">Institutional Email</label>
+              <input type="email" id="contact-email" name="email" class="form-control" placeholder="user@university.edu" required>
+            </div>
+            <div class="form-group mb-3">
+              <label class="form-label" for="contact-dept">Department / Organization</label>
+              <input type="text" id="contact-dept" name="department" class="form-control" placeholder="Computer Science & Engineering">
+            </div>
+            <div class="form-group mb-3">
+              <label class="form-label" for="contact-message">Message or Query</label>
+              <textarea id="contact-message" name="message" rows="4" class="form-control" placeholder="Describe your question or request..." required></textarea>
+            </div>
+            <button type="submit" class="btn-ep btn-ep-primary w-100" id="btn-submit-contact">
+              <i class="bi bi-send-fill"></i> Submit Inquiry
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <div class="col-md-5">
+        <div class="ep-card h-100">
+          <h5 class="fw-bold mb-3">Direct Channels</h5>
+          <div class="d-flex flex-column gap-3 small text-secondary">
+            <div>
+              <div class="fw-bold text-dark"><i class="bi bi-envelope-at text-primary me-2"></i>Email Support</div>
+              <div>support@eventpulse.univ.edu</div>
+            </div>
+            <div>
+              <div class="fw-bold text-dark"><i class="bi bi-building text-warning me-2"></i>Campus Office</div>
+              <div>Center for Academic Technology &amp; Quality Assurance</div>
+            </div>
+            <div>
+              <div class="fw-bold text-dark"><i class="bi bi-clock-history text-success me-2"></i>Operational Hours</div>
+              <div>Monday – Friday, 8:30 AM – 5:30 PM</div>
+            </div>
+          </div>
+          <hr class="my-4">
+          <div class="small text-muted">
+            <i class="bi bi-info-circle me-1"></i> For emergency feedback link resets or student roster re-imports, contact your department administrator.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

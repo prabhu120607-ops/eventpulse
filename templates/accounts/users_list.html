@@ -1,0 +1,55 @@
+{% extends 'base_admin.html' %}
+{% block title %}User Management — EventPulse{% endblock %}
+{% block page_heading %}Institutional User Management{% endblock %}
+
+{% block admin_content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">University User Directory</h1>
+    <p class="page-subtitle">Configure administrative roles, assign departments, and manage access.</p>
+  </div>
+  <a href="{% url 'accounts:user_create' %}" class="btn-ep btn-ep-primary btn-ep-sm">
+    <i class="bi bi-person-plus-fill"></i> Add Administrator / Organizer
+  </a>
+</div>
+
+<div class="ep-card">
+  <div class="ep-table-wrap">
+    <table class="ep-table">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Department</th>
+          <th>Status</th>
+          <th>Joined</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+          <tr>
+            <td>
+              <strong>{{ u.get_full_name|default:u.username }}</strong>
+              <div class="small text-muted">@{{ u.username }}</div>
+            </td>
+            <td>{{ u.email|default:"—" }}</td>
+            <td>
+              <span class="role-pill">{{ u.profile.get_role_display|default:"Organizer" }}</span>
+            </td>
+            <td>{{ u.profile.department.name|default:"University-Wide" }}</td>
+            <td>
+              {% if u.is_active %}
+                <span class="badge-status badge-active">Active</span>
+              {% else %}
+                <span class="badge-status badge-cancelled">Disabled</span>
+              {% endif %}
+            </td>
+            <td>{{ u.date_joined|date:"M d, Y" }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

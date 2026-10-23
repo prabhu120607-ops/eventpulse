@@ -1,0 +1,55 @@
+{% extends 'base_admin.html' %}
+{% block title %}System Notifications — EventPulse{% endblock %}
+{% block page_heading %}Platform Notifications{% endblock %}
+
+{% block admin_content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Notification Center</h1>
+    <p class="page-subtitle">Alerts regarding automated invitation dispatches, deadline expirations, and delivery events.</p>
+  </div>
+  {% if notifications %}
+    <a href="?mark_read=all" class="btn-ep btn-ep-outline-navy btn-ep-sm">
+      <i class="bi bi-check2-all"></i> Mark All as Read
+    </a>
+  {% endif %}
+</div>
+
+<div class="ep-card">
+  {% if notifications %}
+    <div class="d-flex flex-column gap-3">
+      {% for notif in notifications %}
+        <div class="p-3 rounded-3 border d-flex gap-3 align-items-start {% if not notif.is_read %}bg-light border-primary{% endif %}">
+          <div class="fs-4 text-{{ notif.level|default:'primary' }}">
+            {% if notif.level == 'success' %}
+              <i class="bi bi-check-circle-fill"></i>
+            {% elif notif.level == 'warning' %}
+              <i class="bi bi-exclamation-triangle-fill"></i>
+            {% elif notif.level == 'danger' %}
+              <i class="bi bi-x-octagon-fill"></i>
+            {% else %}
+              <i class="bi bi-info-circle-fill"></i>
+            {% endif %}
+          </div>
+          <div class="flex-grow-1">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <h6 class="fw-bold mb-0 text-navy">{{ notif.title }}</h6>
+              <span class="small text-muted">{{ notif.created_at|timesince }} ago</span>
+            </div>
+            <p class="small text-secondary mb-1">{{ notif.message }}</p>
+            {% if notif.link %}
+              <a href="{{ notif.link }}" class="small fw-semibold text-primary">Open details &rarr;</a>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-state-icon"><i class="bi bi-bell-slash"></i></div>
+      <h5>No Notifications</h5>
+      <p class="small">You are completely up to date.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

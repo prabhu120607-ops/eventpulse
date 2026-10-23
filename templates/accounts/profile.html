@@ -1,0 +1,63 @@
+{% extends 'base_admin.html' %}
+{% block title %}My Profile — EventPulse{% endblock %}
+{% block page_heading %}User Profile Settings{% endblock %}
+
+{% block admin_content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Administrator Profile</h1>
+    <p class="page-subtitle">Manage your personal credentials, contact information, and role assignments.</p>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-lg-8">
+    <div class="ep-card">
+      <form method="POST" action="">
+        {% csrf_token %}
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label">First Name</label>
+            {{ form.first_name }}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Last Name</label>
+            {{ form.last_name }}
+          </div>
+        </div>
+
+        <div class="form-group mb-3">
+          <label class="form-label">Institutional Email</label>
+          {{ form.email }}
+        </div>
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label">Academic Title / Designation</label>
+            {{ form.title }}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Contact Phone</label>
+            {{ form.phone }}
+          </div>
+        </div>
+
+        <div class="p-3 bg-light rounded-3 mb-4 border">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span class="small fw-bold text-dark">Assigned Role:</span>
+            <span class="role-pill">{{ profile.get_role_display }}</span>
+          </div>
+          <div class="d-flex justify-content-between align-items-center">
+            <span class="small fw-bold text-dark">Department Affiliation:</span>
+            <span class="small text-muted">{{ profile.department.name|default:"University-Wide Administrator" }}</span>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-ep btn-ep-primary">
+          <i class="bi bi-save"></i> Save Profile Changes
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

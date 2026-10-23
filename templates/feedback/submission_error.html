@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ error_title|default:"Feedback Notice" }} — EventPulse{% endblock %}
+
+{% block content %}
+<section class="section-pad d-flex align-items-center" style="min-height: 75vh;">
+  <div class="container text-center" style="max-width: 580px;">
+    <div class="ep-card p-5 shadow-lg">
+      <div class="mb-3 text-warning" style="font-size: 3.5rem;">
+        {% if is_duplicate %}
+          <i class="bi bi-check-circle text-primary"></i>
+        {% elif is_expired %}
+          <i class="bi bi-clock-history text-muted"></i>
+        {% else %}
+          <i class="bi bi-shield-x text-danger"></i>
+        {% endif %}
+      </div>
+
+      <h3 class="fw-bold mb-2 text-navy" style="color: var(--primary-navy);">{{ error_title }}</h3>
+      <p class="text-secondary mb-4">{{ error_message }}</p>
+
+      {% if event %}
+        <div class="p-3 bg-light rounded-3 border mb-4 text-start small">
+          <div class="fw-bold text-dark mb-1">{{ event.title }}</div>
+          <div class="text-muted">Host: {{ event.department.name|default:"University Department" }} &bull; {{ event.start_time|date:"M d, Y" }}</div>
+        </div>
+      {% endif %}
+
+      <a href="{% url 'public:home' %}" class="btn-ep btn-ep-outline-navy">
+        <i class="bi bi-house-door"></i> Return to Homepage
+      </a>
+    </div>
+  </div>
+</section>
+{% endblock %}

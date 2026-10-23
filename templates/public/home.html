@@ -1,0 +1,346 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}EventPulse — University Event Feedback Automation & Analytics Platform{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+  <div class="hero-container">
+    <div class="hero-content">
+      <div class="hero-badge">
+        <i class="bi bi-patch-check-fill text-warning"></i>
+        <span>Campus Experience Operating System</span>
+      </div>
+      <h1 class="hero-title">Turn Every Campus Event Into a Better Experience.</h1>
+      <p class="hero-desc">
+        Automate university event feedback, understand student experiences, and transform reviews into actionable improvements.
+      </p>
+      <div class="hero-buttons">
+        <a href="#features" class="btn-ep btn-ep-gold btn-ep-lg" id="btn-explore">
+          <i class="bi bi-compass"></i> Explore EventPulse
+        </a>
+        <a href="{% url 'public:how_it_works' %}" class="btn-ep btn-ep-outline-white btn-ep-lg" id="btn-how-it-works">
+          <i class="bi bi-play-circle"></i> See How It Works
+        </a>
+        {% if not user.is_authenticated %}
+        <a href="{% url 'accounts:login' %}" class="btn-ep btn-ep-outline-white btn-ep-lg" id="btn-hero-login">
+          <i class="bi bi-shield-lock"></i> Admin Login
+        </a>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Interactive Mockup Preview -->
+    <div class="hero-mockup-card">
+      <div class="mockup-header">
+        <div>
+          <div class="fw-bold" style="color: var(--primary-navy); font-size: 1rem;">
+            <i class="bi bi-graph-up-arrow me-1 text-primary"></i> Annual AI & Robotics Summit
+          </div>
+          <div class="small text-muted">Feedback Automation & Pulse Stream</div>
+        </div>
+        <span class="badge bg-success-subtle text-success px-2 py-1 small fw-semibold">Live Analysis</span>
+      </div>
+
+      <div class="mockup-stat-grid">
+        <div class="mockup-stat">
+          <div class="label">Response Rate</div>
+          <div class="value">84.2%</div>
+        </div>
+        <div class="mockup-stat">
+          <div class="label">Avg Satisfaction</div>
+          <div class="value text-warning">4.8 / 5.0</div>
+        </div>
+      </div>
+
+      <div class="p-3 bg-light rounded-3 border mb-3">
+        <div class="d-flex justify-content-between small text-muted mb-1">
+          <span>Feedback Completion</span>
+          <span class="fw-bold text-dark">412 / 489 Students</span>
+        </div>
+        <div class="progress" style="height: 8px;">
+          <div class="progress-bar bg-primary" role="progressbar" style="width: 84%; background-color: var(--primary-navy) !important;"></div>
+        </div>
+      </div>
+
+      <div class="small text-secondary">
+        <div class="fw-semibold text-dark mb-1"><i class="bi bi-magic text-warning me-1"></i> NLP Feedback Theme Highlight:</div>
+        <em>"Students highlighted exceptional hands-on workshop modules; requested extended Q&amp;A sessions in upcoming technical events."</em>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Upcoming Campus Events (Students Can Register) -->
+{% if upcoming_events %}
+<section class="py-5" style="background-color: var(--bg-main); border-bottom: 1px solid var(--border-color);">
+  <div class="section-container">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+      <div>
+        <span class="section-tag">Student Participation</span>
+        <h2 class="h3 fw-bold mb-0 text-navy">Upcoming Campus Events</h2>
+      </div>
+      <a href="{% url 'public:events_list' %}" class="btn-ep btn-ep-outline-navy btn-ep-sm">
+        View All Events &rarr;
+      </a>
+    </div>
+
+    <div class="grid-3">
+      {% for event in upcoming_events %}
+        <div class="ep-card d-flex flex-column justify-content-between h-100 mb-0">
+          <div>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="badge bg-light text-dark border">{{ event.get_category_display }}</span>
+              <span class="role-pill">{{ event.department.code|default:"Open to All" }}</span>
+            </div>
+            <h5 class="fw-bold text-navy mb-2">{{ event.title }}</h5>
+            <div class="small text-muted mb-3">
+              <div><i class="bi bi-clock me-1 text-primary"></i> {{ event.start_time|date:"M d, Y @ h:i A" }}</div>
+              <div><i class="bi bi-geo-alt me-1 text-danger"></i> {{ event.venue }}</div>
+            </div>
+            <p class="small text-secondary mb-3">{{ event.description|truncatewords:20 }}</p>
+          </div>
+          <div class="pt-3 border-top">
+            <a href="{% url 'public:register_event' event.id %}" class="btn-ep btn-ep-primary btn-ep-sm w-100">
+              <i class="bi bi-pencil-square"></i> Register for Event
+            </a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- The Problem with Manual Feedback -->
+<section class="section-pad" style="background-color: var(--white); border-bottom: 1px solid var(--border-color);">
+  <div class="section-container">
+    <div class="section-header">
+      <span class="section-tag">Campus Operational Reality</span>
+      <h2 class="section-title">The Challenge of Manual Feedback Collection</h2>
+      <p class="section-desc">
+        Traditional paper evaluation sheets and generic shared online links suffer from severe drop-offs, administrative overhead, and unrepresentative data.
+      </p>
+    </div>
+
+    <div class="grid-3">
+      <div class="feature-card">
+        <div class="feature-icon-wrap text-danger" style="background: rgba(185, 28, 28, 0.1);">
+          <i class="bi bi-envelope-slash"></i>
+        </div>
+        <h3>Low Student Response Rates</h3>
+        <p>
+          Generic forms sent days late or announced verbally at the end of sessions result in response rates below 15%, missing crucial student perspectives.
+        </p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-wrap text-warning" style="background: rgba(180, 83, 9, 0.1);">
+          <i class="bi bi-arrow-repeat"></i>
+        </div>
+        <h3>Duplicate &amp; Fraudulent Responses</h3>
+        <p>
+          Open forms cannot verify whether a respondent actually attended, leading to ballot-stuffing, spam, or duplicate responses that skew institutional metrics.
+        </p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-wrap text-secondary" style="background: rgba(100, 116, 139, 0.1);">
+          <i class="bi bi-file-earmark-x"></i>
+        </div>
+        <h3>Unused, Dormant Reviews</h3>
+        <p>
+          Collected comments often sit dormant in spreadsheets without systematic sentiment clustering or automated executive reporting for university leadership.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Three Steps: Organize, Collect, Improve -->
+<section class="section-pad" id="how-it-works">
+  <div class="section-container">
+    <div class="section-header">
+      <span class="section-tag">Continuous Excellence Loop</span>
+      <h2 class="section-title">Three Steps: Organize, Collect, Improve</h2>
+      <p class="section-desc">
+        A seamless closed-loop pipeline built specifically for university departments, academic clubs, and campus administrators.
+      </p>
+    </div>
+
+    <div class="steps-container">
+      <div class="step-card">
+        <div class="step-number">1</div>
+        <h3 class="mb-3">Organize</h3>
+        <p class="text-secondary small">
+          Create events with multi-step workflows, configure customized feedback questions, and import registered student rosters effortlessly via CSV.
+        </p>
+      </div>
+
+      <div class="step-card">
+        <div class="step-number">2</div>
+        <h3 class="mb-3">Collect</h3>
+        <p class="text-secondary small">
+          As soon as the event concludes, automated invitations with single-use, tamper-proof secure tokens are emailed directly to verified attendees.
+        </p>
+      </div>
+
+      <div class="step-card">
+        <div class="step-number">3</div>
+        <h3 class="mb-3">Improve</h3>
+        <p class="text-secondary small">
+          Review real-time satisfaction analytics, sentiment breakdown, keyword themes, and export executive department reports for institutional accreditation.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Key Platform Features -->
+<section class="section-pad" id="features" style="background-color: var(--white); border-top: 1px solid var(--border-color);">
+  <div class="section-container">
+    <div class="section-header">
+      <span class="section-tag">Core Capabilities</span>
+      <h2 class="section-title">Engineered for Academic Excellence</h2>
+      <p class="section-desc">
+        Every tool required to streamline feedback operations across faculties, guest lectures, and campus festivals.
+      </p>
+    </div>
+
+    <div class="grid-3">
+      <div class="feature-card">
+        <div class="feature-icon-wrap">
+          <i class="bi bi-lightning-charge-fill"></i>
+        </div>
+        <h3>Automated Invitation Trigger</h3>
+        <p>
+          Schedule feedback invitations immediately post-event or with customizable time delays. Automated reminders gently nudge pending respondents before deadlines.
+        </p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-wrap">
+          <i class="bi bi-shield-lock-fill"></i>
+        </div>
+        <h3>Cryptographic Single-Use Tokens</h3>
+        <p>
+          Students receive unique URL-safe tokens that prevent duplicate submissions, ensure authenticated eligibility, and close automatically at the deadline.
+        </p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-wrap">
+          <i class="bi bi-eye-slash-fill"></i>
+        </div>
+        <h3>Guaranteed Anonymous Mode</h3>
+        <p>
+          Support verified anonymous feedback where responses are decoupled from student IDs at the database level, fostering honest, transparent feedback.
+        </p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-wrap">
+          <i class="bi bi-ui-checks"></i>
+        </div>
+        <h3>Flexible Question Builder</h3>
+        <p>
+          Combine 5-star ratings, multiple choice, single choice, yes/no questions, and detailed constructive text inputs tailored for individual events.
+        </p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-wrap">
+          <i class="bi bi-cpu-fill"></i>
+        </div>
+        <h3>NLP Sentiment &amp; Theme Analysis</h3>
+        <p>
+          Built-in Python natural language processing automatically identifies positive praise, common complaints, and recurring student suggestions.
+        </p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-wrap">
+          <i class="bi bi-file-earmark-spreadsheet-fill"></i>
+        </div>
+        <h3>One-Click Executive CSV Exports</h3>
+        <p>
+          Export clean, formatted reports for individual events, departments, or university-wide satisfaction audits ready for academic compliance.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Benefits Matrix for Stakeholders -->
+<section class="section-pad">
+  <div class="section-container">
+    <div class="section-header">
+      <span class="section-tag">Value Proposition</span>
+      <h2 class="section-title">Designed for Every Campus Stakeholder</h2>
+      <p class="section-desc">
+        From undergraduate participants to Deans of Academic Affairs, EventPulse delivers purposeful clarity.
+      </p>
+    </div>
+
+    <div class="grid-3">
+      <div class="ep-card">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <i class="bi bi-mortarboard-fill text-primary fs-3"></i>
+          <h4 class="mb-0">For Students</h4>
+        </div>
+        <ul class="list-unstyled d-flex flex-column gap-2 small text-secondary">
+          <li><i class="bi bi-check2 text-success me-2"></i> No account or password required to submit</li>
+          <li><i class="bi bi-check2 text-success me-2"></i> Fast, mobile-responsive feedback interface</li>
+          <li><i class="bi bi-check2 text-success me-2"></i> Guaranteed anonymity option protects privacy</li>
+          <li><i class="bi bi-check2 text-success me-2"></i> Voice directly influences future campus programs</li>
+        </ul>
+      </div>
+
+      <div class="ep-card">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <i class="bi bi-person-workspace text-warning fs-3"></i>
+          <h4 class="mb-0">For Organizers</h4>
+        </div>
+        <ul class="list-unstyled d-flex flex-column gap-2 small text-secondary">
+          <li><i class="bi bi-check2 text-success me-2"></i> Eliminates manual email drafting and follow-ups</li>
+          <li><i class="bi bi-check2 text-success me-2"></i> Instant CSV roster imports with validation</li>
+          <li><i class="bi bi-check2 text-success me-2"></i> Automated deadline enforcement</li>
+          <li><i class="bi bi-check2 text-success me-2"></i> Actionable insights to celebrate speaker success</li>
+        </ul>
+      </div>
+
+      <div class="ep-card">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <i class="bi bi-buildings-fill text-dark fs-3"></i>
+          <h4 class="mb-0">For University Management</h4>
+        </div>
+        <ul class="list-unstyled d-flex flex-column gap-2 small text-secondary">
+          <li><i class="bi bi-check2 text-success me-2"></i> Cross-department satisfaction benchmarking</li>
+          <li><i class="bi bi-check2 text-success me-2"></i> High response rates validate institutional ROI</li>
+          <li><i class="bi bi-check2 text-success me-2"></i> Audit logs track administrative actions securely</li>
+          <li><i class="bi bi-check2 text-success me-2"></i> Verified data for accreditation &amp; rankings</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Call to Action Banner -->
+<section class="py-5" style="background-color: var(--primary-navy); color: var(--white);">
+  <div class="container text-center py-4">
+    <h2 class="text-white mb-3 fw-bold">Ready to Elevate Campus Feedback Operations?</h2>
+    <p class="text-white-50 mx-auto mb-4" style="max-width: 620px;">
+      Empower your university with automated feedback loops, high student response rates, and data-backed event enhancement.
+    </p>
+    <div class="d-flex justify-content-center gap-3 flex-wrap">
+      <a href="{% url 'public:how_it_works' %}" class="btn-ep btn-ep-gold btn-ep-lg">
+        <i class="bi bi-compass"></i> Learn How It Works
+      </a>
+      <a href="{% url 'accounts:login' %}" class="btn-ep btn-ep-outline-white btn-ep-lg">
+        <i class="bi bi-shield-lock"></i> Organizer Login
+      </a>
+    </div>
+  </div>
+</section>
+{% endblock %}

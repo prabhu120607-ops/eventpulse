@@ -1,0 +1,53 @@
+{% extends 'base_admin.html' %}
+{% block title %}System Audit Logs — EventPulse{% endblock %}
+{% block page_heading %}Security &amp; Audit Logs{% endblock %}
+
+{% block admin_content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Administrative Audit Trail</h1>
+    <p class="page-subtitle">Immutable chronological log of authentication, feedback invitations, and event updates.</p>
+  </div>
+</div>
+
+<div class="ep-card">
+  {% if logs %}
+    <div class="ep-table-wrap">
+      <table class="ep-table">
+        <thead>
+          <tr>
+            <th>Timestamp (UTC)</th>
+            <th>User</th>
+            <th>Action Code</th>
+            <th>Details</th>
+            <th>IP Address</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in logs %}
+            <tr>
+              <td class="text-nowrap small text-muted">{{ log.timestamp|date:"Y-m-d H:i:s" }}</td>
+              <td>
+                {% if log.user %}
+                  <strong>{{ log.user.username }}</strong>
+                {% else %}
+                  <span class="text-muted">System Scheduler</span>
+                {% endif %}
+              </td>
+              <td><span class="badge bg-secondary-subtle text-dark">{{ log.action }}</span></td>
+              <td class="small">{{ log.details }}</td>
+              <td class="small text-muted">{{ log.ip_address|default:"127.0.0.1" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-state-icon"><i class="bi bi-journal-x"></i></div>
+      <h5>No Audit Records Logged Yet</h5>
+      <p class="small">Administrative activities will be logged automatically.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

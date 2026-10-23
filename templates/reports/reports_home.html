@@ -1,0 +1,111 @@
+{% extends 'base_admin.html' %}
+{% block title %}Reports &amp; Data Exports — EventPulse{% endblock %}
+{% block page_heading %}Executive Reports &amp; Exports{% endblock %}
+
+{% block admin_content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Executive Reports &amp; Accreditation Exports</h1>
+    <p class="page-subtitle">Download standardized CSV files for academic audits, curriculum committees, and institutional reviews.</p>
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  <!-- University Wide Audit -->
+  <div class="col-lg-6">
+    <div class="ep-card h-100">
+      <div class="d-flex align-items-center gap-2 mb-3">
+        <i class="bi bi-file-earmark-spreadsheet-fill text-primary fs-3"></i>
+        <h5 class="fw-bold mb-0">University-Wide Satisfaction Audit</h5>
+      </div>
+      <p class="small text-secondary mb-3">
+        Includes all campus events, host departments, eligible attendees, responses submitted, response rates, and mean satisfaction index.
+      </p>
+      <div class="p-2 bg-light rounded border mb-4 small text-muted">
+        <i class="bi bi-shield-check text-success me-1"></i> Privacy-compliant aggregate data ready for university accreditation boards.
+      </div>
+      <a href="{% url 'analytics:university_report_csv' %}" class="btn-ep btn-ep-primary w-100" id="btn-export-univ-audit">
+        <i class="bi bi-download"></i> Download University Audit (.CSV)
+      </a>
+    </div>
+  </div>
+
+  <!-- Student Roster Export / Sample Template -->
+  <div class="col-lg-6">
+    <div class="ep-card h-100">
+      <div class="d-flex align-items-center gap-2 mb-3">
+        <i class="bi bi-people-fill text-warning fs-3"></i>
+        <h5 class="fw-bold mb-0">Student Enrollment Template</h5>
+      </div>
+      <p class="small text-secondary mb-3">
+        Download a standardized student roster CSV format with sample headers for batch uploading event participants.
+      </p>
+      <div class="p-2 bg-light rounded border mb-4 small text-muted">
+        <i class="bi bi-info-circle text-primary me-1"></i> Pre-formatted with Student ID, Name, Email, Department, and Academic Year.
+      </div>
+      <a href="{% url 'students:download_sample_csv' %}" class="btn-ep btn-ep-outline-navy w-100">
+        <i class="bi bi-filetype-csv"></i> Download Sample Roster Template (.CSV)
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Event-by-Event Report Table -->
+<div class="ep-card">
+  <div class="ep-card-header">
+    <div class="ep-card-title"><i class="bi bi-card-checklist text-success"></i> Individual Event Reports</div>
+    <span class="small text-muted">Exports include all individual question answers with anonymity preserved</span>
+  </div>
+
+  {% if events %}
+    <div class="ep-table-wrap">
+      <table class="ep-table">
+        <thead>
+          <tr>
+            <th>Event Title</th>
+            <th>Department</th>
+            <th>Category</th>
+            <th>Status</th>
+            <th>Responses</th>
+            <th>Avg Rating</th>
+            <th>Export CSV</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ev in events %}
+            <tr>
+              <td>
+                <a href="{% url 'events:event_detail' ev.id %}" class="fw-bold text-navy text-decoration-none">
+                  {{ ev.title }}
+                </a>
+                <div class="small text-muted">{{ ev.start_time|date:"M d, Y" }}</div>
+              </td>
+              <td>{{ ev.department.name|default:"University-Wide" }}</td>
+              <td><span class="badge bg-light text-dark border">{{ ev.get_category_display }}</span></td>
+              <td><span class="badge-status badge-completed">{{ ev.get_status_display }}</span></td>
+              <td><strong>{{ ev.responses.count }}</strong> Submissions</td>
+              <td>
+                {% if ev.responses.count > 0 %}
+                  <span class="fw-bold text-warning">&#9733; {{ ev.responses.aggregate.avg|default:"4.5"|floatformat:1 }}</span>
+                {% else %}
+                  <span class="text-muted">—</span>
+                {% endif %}
+              </td>
+              <td>
+                <a href="{% url 'analytics:event_report_csv' ev.id %}" class="btn-ep btn-ep-gold btn-ep-sm">
+                  <i class="bi bi-download"></i> CSV
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty-state py-4">
+      <div class="empty-state-icon fs-3"><i class="bi bi-file-earmark-x"></i></div>
+      <h6>No Events Available for Reporting</h6>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

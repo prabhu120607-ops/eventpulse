@@ -1,0 +1,167 @@
+{% extends 'base_admin.html' %}
+{% block title %}Automated Feedback Invitations — EventPulse{% endblock %}
+{% block page_heading %}Feedback Invitations &amp; Delivery Telemetry{% endblock %}
+
+{% block admin_content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Invitation Tokens &amp; Email Dispatch</h1>
+    <p class="page-subtitle">Track delivery attempts, reminder cycles, single-use token consumption, and email logs.</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'feedback:process_automations' %}" class="btn-ep btn-ep-primary btn-ep-sm" id="btn-run-all-automations">
+      <i class="bi bi-arrow-repeat"></i> Run Automation Check
+    </a>
+    <button type="button" class="btn-ep btn-ep-outline-navy btn-ep-sm" data-bs-toggle="modal" data-bs-target="#testEmailModal">
+      <i class="bi bi-envelope-at"></i> Send Test Email
+    </button>
+  </div>
+</div>
+
+<!-- Filters -->
+<div class="ep-card p-3 mb-4">
+  <form method="GET" action="" class="row g-3">
+    <div class="col-md-6">
+      <select name="event" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="">All Campus Events</option>
+        {% for ev in events %}
+          <option value="{{ ev.id }}" {% if selected_event == ev.id|stringformat:"s" %}selected{% endif %}>{{ ev.title }} ({{ ev.start_time|date:"M d, Y" }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-4">
+      <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="">All Statuses</option>
+        <option value="PENDING" {% if selected_status == 'PENDING' %}selected{% endif %}>Pending Dispatch</option>
+        <option value="SENT" {% if selected_status == 'SENT' %}selected{% endif %}>Sent (Awaiting Submission)</option>
+        <option value="COMPLETED" {% if selected_status == 'COMPLETED' %}selected{% endif %}>Feedback Submitted</option>
+        <option value="FAILED" {% if selected_status == 'FAILED' %}selected{% endif %}>Delivery Failed</option>
+      </select>
+    </div>
+    <div class="col-md-2">
+      <a href="{% url 'feedback:invitations_list' %}" class="btn btn-sm btn-outline-secondary w-100">Reset</a>
+    </div>
+  </form>
+</div>
+
+<!-- Invitations Table -->
+<div class="ep-card">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <span class="small text-muted">Showing <strong>{{ page_obj.paginator.count }}</strong> total invitation tokens</span>
+  </div>
+
+  {% if page_obj %}
+    <div class="ep-table-wrap">
+      <table class="ep-table">
+        <thead>
+          <tr>
+            <th>Event</th>
+            <th>Recipient Student</th>
+            <th>Secure Token (Hash)</th>
+            <th>Status</th>
+            <th>Sent Time</th>
+            <th>Reminders</th>
+            <th>Completed At</th>
+            <th>Quick Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for inv in page_obj %}
+            <tr>
+              <td>
+                <a href="{% url 'events:event_detail' inv.event.id %}" class="fw-bold text-navy text-decoration-none">
+                  {{ inv.event.title }}
+                </a>
+              </td>
+              <td>
+                <strong>{{ inv.student.full_name }}</strong>
+                <div class="small text-muted">{{ inv.student.university_email }}</div>
+              </td>
+              <td>
+                <span class="font-monospace small text-muted" title="{{ inv.token }}">
+                  {{ inv.token|truncatechars:14 }}
+                </span>
+              </td>
+              <td>
+                {% if inv.status == 'COMPLETED' %}
+                  <span class="badge-status badge-completed"><i class="bi bi-check2"></i> Submitted</span>
+                {% elif inv.status == 'SENT' %}
+                  <span class="badge-status badge-in-progress">Sent</span>
+                {% elif inv.status == 'FAILED' %}
+                  <span class="badge-status badge-cancelled" title="{{ inv.delivery_error }}">Failed</span>
+                {% else %}
+                  <span class="badge-status badge-pending">Pending</span>
+                {% endif %}
+              </td>
+              <td class="small text-muted">{{ inv.sent_at|date:"M d, H:i"|default:"Not sent" }}</td>
+              <td>
+                <span class="badge bg-light text-dark border">{{ inv.reminder_count }} Sent</span>
+              </td>
+              <td class="small text-muted">{{ inv.completed_at|date:"M d, H:i"|default:"—" }}</td>
+              <td>
+                <div class="d-flex gap-1">
+                  {% if inv.status != 'COMPLETED' %}
+                    <a href="{% url 'feedback:submit_feedback' inv.token %}" target="_blank" class="btn btn-sm btn-outline-secondary py-0 px-2" title="Open Student Link">
+                      <i class="bi bi-box-arrow-up-right"></i>
+                    </a>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+      <div class="d-flex justify-content-center mt-4">
+        <ul class="pagination pagination-sm">
+          {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">&larr; Previous</a></li>
+          {% endif %}
+          <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+          {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next &rarr;</a></li>
+          {% endif %}
+        </ul>
+      </div>
+    {% endif %}
+
+  {% else %}
+    <div class="empty-state py-4">
+      <div class="empty-state-icon fs-3"><i class="bi bi-envelope-x"></i></div>
+      <h5>No Invitation Tokens Generated</h5>
+      <p class="small">Invitations are created when an event ends or when an organizer triggers dispatch.</p>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Modal: Send Test Email -->
+<div class="modal fade" id="testEmailModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" action="{% url 'feedback:test_email' %}">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold">Send SMTP / Email Test Notification</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p class="small text-muted mb-3">
+            Verify that your Django email framework configuration operates correctly. In local development, emails are printed cleanly to your VS Code terminal.
+          </p>
+          <div class="form-group mb-3">
+            <label class="form-label small">Target Recipient Email</label>
+            <input type="email" name="test_email" class="form-control" value="{{ user.email }}" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn-ep btn-ep-primary btn-ep-sm">Send Test Notification</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

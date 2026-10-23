@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}How It Works — EventPulse{% endblock %}
+
+{% block content %}
+<section class="py-5" style="background-color: var(--primary-navy); color: var(--white);">
+  <div class="container text-center py-4">
+    <span class="badge bg-warning text-dark px-3 py-1 mb-3 fw-bold">Step-by-Step Workflow</span>
+    <h1 class="text-white fw-bold mb-3">How EventPulse Works</h1>
+    <p class="text-white-50 mx-auto" style="max-width: 650px;">
+      Discover how EventPulse transforms chaotic post-event feedback into an automated, reliable campus process.
+    </p>
+  </div>
+</section>
+
+<section class="section-pad">
+  <div class="section-container" style="max-width: 900px;">
+    <div class="d-flex flex-column gap-5 position-relative">
+      
+      <!-- Step 1 -->
+      <div class="d-flex gap-4 align-items-start">
+        <div class="step-number m-0 flex-shrink-0">1</div>
+        <div class="ep-card flex-grow-1 mb-0">
+          <span class="badge bg-primary-subtle text-primary mb-2">Step 1: Event Configuration</span>
+          <h4 class="fw-bold">Organizer Creates the Event &amp; Builds Form</h4>
+          <p class="text-secondary small">
+            The department coordinator or club organizer registers the event details, sets the scheduled end time, selects either Anonymous or Identified feedback mode, and customizes question types (star ratings, multiple choice, text questions).
+          </p>
+          <div class="p-2 bg-light rounded border small text-muted">
+            <i class="bi bi-info-circle me-1 text-primary"></i> Pre-set question templates for workshops, guest lectures, and hackathons are available instantly.
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="d-flex gap-4 align-items-start">
+        <div class="step-number m-0 flex-shrink-0">2</div>
+        <div class="ep-card flex-grow-1 mb-0">
+          <span class="badge bg-warning-subtle text-warning mb-2">Step 2: Attendee Enrollment</span>
+          <h4 class="fw-bold">Upload Registered Student Roster via CSV</h4>
+          <p class="text-secondary small">
+            Organizers import registered participants from registration forms or attendance scanners. EventPulse validates student emails, flags duplicate entries, and connects eligible students with the event.
+          </p>
+          <div class="p-2 bg-light rounded border small text-muted">
+            <i class="bi bi-file-earmark-spreadsheet me-1 text-success"></i> Includes CSV column validation, preview mode, and import verification counts.
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="d-flex gap-4 align-items-start">
+        <div class="step-number m-0 flex-shrink-0">3</div>
+        <div class="ep-card flex-grow-1 mb-0">
+          <span class="badge bg-success-subtle text-success mb-2">Step 3: Automated Dispatch</span>
+          <h4 class="fw-bold">Automated Token &amp; Email Delivery</h4>
+          <p class="text-secondary small">
+            Once the event concludes, the EventPulse scheduler triggers invitation creation. Each eligible student receives an invitation email containing a secure, personalized single-use feedback link.
+          </p>
+          <div class="p-2 bg-light rounded border small text-muted">
+            <i class="bi bi-shield-lock me-1 text-warning"></i> Links look like: <code>https://univ.edu/feedback/submit/vK9pX8...</code> — no logins needed for students.
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 4 -->
+      <div class="d-flex gap-4 align-items-start">
+        <div class="step-number m-0 flex-shrink-0">4</div>
+        <div class="ep-card flex-grow-1 mb-0">
+          <span class="badge bg-info-subtle text-info mb-2">Step 4: Submission &amp; Reminders</span>
+          <h4 class="fw-bold">Frictionless Submission &amp; Automated Follow-up</h4>
+          <p class="text-secondary small">
+            Students open the mobile-optimized form, submit ratings and suggestions in seconds. The single-use token is marked consumed. Students who haven't responded receive gentle automated reminders before the deadline closes the form.
+          </p>
+        </div>
+      </div>
+
+      <!-- Step 5 -->
+      <div class="d-flex gap-4 align-items-start">
+        <div class="step-number m-0 flex-shrink-0">5</div>
+        <div class="ep-card flex-grow-1 mb-0">
+          <span class="badge bg-dark text-white mb-2">Step 5: Insights &amp; Accreditation</span>
+          <h4 class="fw-bold">Analytics, Sentiment Themes, &amp; CSV Reports</h4>
+          <p class="text-secondary small">
+            Administrators explore real-time satisfaction trends, department benchmarks, and AI theme summaries, and export CSV reports ready for curriculum committee meetings and institutional accreditation audits.
+          </p>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="text-center mt-5">
+      <a href="{% url 'accounts:login' %}" class="btn-ep btn-ep-primary btn-ep-lg">
+        <i class="bi bi-box-arrow-in-right"></i> Access Organizer Dashboard
+      </a>
+    </div>
+  </div>
+</section>
+{% endblock %}
